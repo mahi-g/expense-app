@@ -1,0 +1,14 @@
+.Header {
+    font-size: larger;
+    color: white;
+    background-color: black;
+    width: 100%;
+    height: 35px;
+    vertical-align: center;
+    padding: 12px 8px 8px 16px;
+}
+.Body{
+    padding: 8px;
+}
+
+
