@@ -1,5 +1,5 @@
 import React from 'react';
-
+import {getPaypalFee, getSellerFee, getBalance, getProfit} from "./mathFunctions"
 //All strings that will be changed sparingly/not at all should be established beforehand..
 const resultTableHeaders = ["Sold", "Paid", "Quantity", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
 
@@ -8,58 +8,49 @@ export default class Calculator extends React.Component {
         super(props);
         this.state = {
             list: [],
-            moneyYouKeep: 0,
+            balance: 0,
             itemProfit: 0,
             paypalFee: 0,
-            depopFee: 0,
+            sellerFee: 0,
             shippingFee: 0,
             netProfit: 0,
-
         };
         this.handleFormInputs = this.handleFormInputs.bind(this);
     }
 
-    handleFormInputs(e) {
-        e.preventDefault();
-        const paid = e.target.elements.paid.value;
-        const sold = e.target.elements.sold.value;
-        const shipping = e.target.elements.shipping.value;
-        const other = e.target.elements.other.value;
-        const platform = e.target.elements.platform.value;
-        const date = e.target.elements.date.value;
-
-        const paypal = Math.floor((sold * 0.029 + 0.3) * 100) / 100;
-        const depop = sold * 0.1;
-
-        const balance = Math.floor((sold - paypal - depop - shipping - other) * 100) / 100;
-        const profit = Math.floor((balance - paid) * 100) / 100;
-
+    handleFormInputs(event) {
+        event.preventDefault();
+        const target = event.target;
+        const form = {};
+        for(let i = 0; i < target.length; i++){
+            form[target.elements[i].getAttribute("name")] = target.elements[i].value;
+        }
+        const paypalFee = getPaypalFee(form.sold);
+        const sellerFee = getSellerFee(form.platform, form.sold)
+        const balance =  getBalance(form.sold,paypalFee,sellerFee,form.shipping,form.other);
+        const itemProfit = getProfit(balance, form.paid);
+        
         console.log("current", this.state);
-
         this.setState((previous) => {
                 return {
-                    /*
-                        I reordered the keys in this list object, I explain why in the comments for ItemTableContents().
-                     */
                     list: previous.list.concat([{
-                        sold,
-                        paid,
+                        sold:form.sold,
+                        paid:form.paid,
                         quantity: 1,
-                        shipping,
-                        other,
-                        paypalFee: paypal,
-                        depopFee: depop,
-                        itemProfit: profit,
-                        platform,
-                        date,
-                        shippingFee: shipping,
+                        shippingFee: form.shipping,
+                        other:form.other,
+                        paypalFee,
+                        sellerFee,
+                        itemProfit,
+                        platform:form.platform,
+                        date:form.date
                     }]),
-                    moneyYouKeep: balance,
-                    itemProfit: profit,
-                    paypalFee: paypal,
-                    depopFee: depop,
-                    shippingFee: shipping,
-                    netProfit: previous.netProfit + profit
+                    balance,
+                    itemProfit,
+                    paypalFee,
+                    sellerFee,
+                    shippingFee: form.shipping,
+                    netProfit: previous.netProfit + itemProfit
                 }
             }
         );
@@ -69,23 +60,23 @@ export default class Calculator extends React.Component {
         console.log("previous state", prevState);
         const json = JSON.stringify(this.state);
         console.log("Updated:", this.state);
-        localStorage.setItem('fooooo', json);
+        localStorage.setItem('foooooo', json);
         console.log("Updated");
     }
 
     componentDidMount() {
         let data;
         try {
-            data = localStorage.getItem('fooooo');
+            data = localStorage.getItem('foooooo');
             data = JSON.parse(data);
             console.log("Mount Data:", data);
             if (data.list) {
                 this.setState({
                     list: data.list,
-                    moneyYouKeep: data.moneyYouKeep,
+                    balance: data.balance,
                     itemProfit: data.itemProfit,
                     paypalFee: data.paypalFee,
-                    depopFee: data.depopFee,
+                    sellerFee: data.sellerFee,
                     shippingFee: data.shippingFee,
                     netProfit: data.netProfit
 
@@ -105,9 +96,9 @@ export default class Calculator extends React.Component {
             <div>
                 <Forms handleFormInputs={this.handleFormInputs}/>
                 <p>PayPal: {this.state.paypalFee}</p>
-                <p>Depop Fee: {this.state.depopFee}</p>
+                <p>Seller Fee: {this.state.sellerFee}</p>
                 <p>Estimated Shipping: {this.state.shippingFee}</p>
-                <p>Money you keep: {this.state.moneyYouKeep}</p>
+                <p>Money you keep: {this.state.balance}</p>
                 <p><b>Your profit:{this.state.itemProfit}</b></p>
 
                 <p><b>History</b></p>
