@@ -1,10 +1,11 @@
 import React from 'react';
-import calculateFees from "./mathFunctions";
 
+import {drawBarChart} from "../D3Charts/drawBarChart"
+import calculateFees from "./mathFunctions";
 import Calculations from "./Calculations";
 import Forms from "./Forms";
-import ItemTableHeaders from "./ItemTableHeaders";
 import ItemTableContents from "./ItemTableContents";
+import ItemTableHeaders from "./ItemTableHeaders";
 
 //All strings that will be changed sparingly/not at all should be established beforehand..
 const resultTableHeaders = ["Sold", "Paid", "Quantity", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
@@ -109,15 +110,27 @@ export default class Calculator extends React.Component {
                     <ItemTableContents list={this.state.list}/>
                 </table>
                 <h4>Your net profit: {this.state.netProfit}</h4>
+
+                <Charts data={this.state.list}/>
             </div>
         )
     }
 }
 
+class Charts extends React.Component {
 
-
-
-
+    constructor(props){
+        super(props);
+    }
+    chartHandler(){
+        drawBarChart(this.props.data)
+    }
+    render(){
+        return (
+            <div id="charts"></div>
+        );  
+    }
+};
 
 
 export {Calculator};
