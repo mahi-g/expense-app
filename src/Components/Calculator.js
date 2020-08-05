@@ -123,7 +123,10 @@ class Charts extends React.Component {
     }
 
     componentDidMount() {
-        drawBarChart(this.props.data)
+        drawBarChart(this.props.data);
+    }
+    componentDidUpdate(){
+        drawBarChart(this.props.data);
     }
 
     render(){

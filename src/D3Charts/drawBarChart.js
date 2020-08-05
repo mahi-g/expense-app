@@ -2,6 +2,7 @@ import * as d3 from "d3";
 
 
 export const drawBarChart = (data) => {
+    d3.select("svg").remove();
     const height = 400;
     const width = 500;
     const svgCanvas = d3.select("#charts")
