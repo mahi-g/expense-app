@@ -36,7 +36,7 @@ export default class Calculator extends React.Component {
         const sellerFee = calculateFees.getSellerFee(form.platform, form.sold)
         const balance =  calculateFees.getBalance(form.sold,paypalFee,sellerFee,form.shipping,form.other);
         const itemProfit = calculateFees.getProfit(balance, form.paid);
-        
+
         console.log("current", this.state);
         this.setState((previous) => {
                 return {
@@ -118,17 +118,18 @@ export default class Calculator extends React.Component {
 }
 
 class Charts extends React.Component {
-
     constructor(props){
         super(props);
     }
-    chartHandler(){
+
+    componentDidMount() {
         drawBarChart(this.props.data)
     }
+
     render(){
         return (
-            <div id="charts"></div>
-        );  
+            <div id="charts"/>
+        );
     }
 };
 
