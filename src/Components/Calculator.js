@@ -1,4 +1,5 @@
 import React from 'react';
+import "../App.css"
 
 import {drawBarChart} from "../D3Charts/drawBarChart"
 import calculateFees from "./mathFunctions";
@@ -67,14 +68,14 @@ export default class Calculator extends React.Component {
         console.log("previous state", prevState);
         const json = JSON.stringify(this.state);
         console.log("Updated:", this.state);
-        localStorage.setItem('foooooooo', json);
+        localStorage.setItem('fooooooooo', json);
         console.log("Updated");
     }
 
     componentDidMount() {
         let data;
         try {
-            data = localStorage.getItem('foooooooo');
+            data = localStorage.getItem('fooooooooo');
             data = JSON.parse(data);
             console.log("Mount Data:", data);
             if (data.list) {
@@ -101,11 +102,11 @@ export default class Calculator extends React.Component {
         return (
             <div>
                 <Forms handleFormInputs={this.handleFormInputs}/>
-                <Calculations data={this.state}/>
+                <Calculations className="Cardstyle" data={this.state}/>
 
                 <h4>All Expenses</h4>
                 {this.state.list.length === 0 && (<p>Add an expense to get started</p>)}
-                <table>
+                <table className="TableS">
                     <ItemTableHeaders headers={resultTableHeaders} listCount={this.state.list.length}/>
                     <ItemTableContents list={this.state.list}/>
                 </table>
@@ -117,11 +118,7 @@ export default class Calculator extends React.Component {
     }
 }
 
-class Charts extends React.Component {
-    constructor(props){
-        super(props);
-    }
-
+class Charts extends React.Component {   
     componentDidMount() {
         drawBarChart(this.props.data);
     }
