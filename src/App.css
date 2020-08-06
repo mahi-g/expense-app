@@ -13,4 +13,17 @@
 
 }
 
+* {
+    margin: 0;
+    padding: 0;
+}
 
+
+.TableS {
+    border: 1px solid black;
+}
+
+.Cardstyle{
+    border: 1px solid black;
+    display: flex;
+}
