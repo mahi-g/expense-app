@@ -6,9 +6,7 @@ class App extends React.Component {
     render() {
         return(
             <div className={"App"}>
-                <div className={"Header"}>
-                    <Header/>
-                </div>
+                
                 <div className={"Body"}>
                     <Calculator/>
                 </div>

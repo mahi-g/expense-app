@@ -4,8 +4,8 @@ import * as d3 from "d3";
 export const drawBarChart = (data) => {
 
     d3.select("svg").remove();
-    const height = 300;
-    const width = 400;
+    const height = 250;
+    const width = 350;
 
     const xScale = d3.scaleLinear()
         .domain([0, data.length])
@@ -38,13 +38,14 @@ export const drawBarChart = (data) => {
         .attr("fill", (d) => {
             if(d.platform === "Ebay") { return "#3ba1d9";}
             else if(d.platform === "Etsy") { return "salmon";}
-            return "red";
+            return "#46c6a8";
         })
         .attr("class", "bar");
 
     svgCanvas.selectAll("text")
         .data(data).enter()
         .append("text")
+        .style("color", "#333333")
         .attr("x", (d, i) => xScale(i) + 5)
         .attr("y", (d) => yScale(d.sold)-5)
         .text((d) => d.sold)
