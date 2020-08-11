@@ -1,29 +1,145 @@
-.Header {
-    font-size: larger;
-    color: white;
-    background-color: black;
-    width: 100%;
-    height: 35px;
-    vertical-align: center;
-    padding: 12px 8px 8px 16px;
-}
-.Body{
-    padding: 8px;
-    margin: 0;
-
-}
-
-* {
-    margin: 0;
+*{
     padding: 0;
+    margin-left: 0%;
 }
 
-
-.TableS {
-    border: 1px solid black;
+.GridContainer{
+    margin: 0%;
+    display: grid;
+    grid-template-columns: .75fr 2fr 2fr;
+    grid-template-rows: minmax(2fr,auto);
+    width: 100%;
+    height: 1vh;
+    grid-area:
+    "nav""nav"
+    "sidebar""main"
+    "sidebar""main";
 }
 
-.Cardstyle{
-    border: 1px solid black;
+.GridItem{
+    grid-area: "main";
+    background: #ffffff;
+    border: 1px solid rgb(231, 230, 236);
+    border-radius: 3px;
+    margin: 2%;
+    box-shadow: 2px 3px 12px 4px rgb(231, 230, 236);
+}
+
+nav{
+    background:  rgb(30, 47, 63);
+    color: white;
+    padding: 2% 0 2% 0;
+    grid-area: "nav";
+    grid-column: 1/4;
+    z-index: 1;
     display: flex;
+    justify-content: space-evenly;
 }
+
+.Item1{
+    display: flex;
+    justify-content: space-around;
+}
+.Item2{
+    display: flex;
+    flex-direction: column;
+}
+.Item2 Select {
+    margin: 1% 60% 1% 0%;
+}
+.Item3{
+  
+}
+.Item4{
+    display: flex;
+    justify-content: space-around;
+}
+.Item5{
+    grid-column: 2/4;
+}
+
+/* side bar */
+.Sidebar{
+    height: 100%;
+    background: rgb(30, 47, 63);
+    border: 1px solid rgb(231, 230, 236);
+    z-index: -1;
+    overflow-x: hidden;
+    grid-area: "sidebar";
+    grid-column: 1 / 2;
+    grid-row: 2/6;
+    display: flex;
+    justify-content: center;
+}
+ a {
+    height: 100%;
+    padding: 10%;
+    color: white;
+    text-decoration: none;
+}
+
+ul{
+    width: 100%;
+    
+}
+ul li{
+    list-style: none;
+    padding: 5%;
+    margin-bottom: 1%;
+    text-align: center;
+    background: rgb(41, 63, 85);
+}
+ul li:hover{
+    background: rgb(34, 51, 68);
+}
+
+ul li:nth-last-child(){
+    padding-bottom: 100%;
+}
+
+/* Table */
+
+tr:nth-child(even) {
+    background-color: rgb(251, 251, 253);
+}
+thead, td{
+    text-align: center;
+    padding: 0.5%;
+}
+thead{
+    width: 100%;
+    background: rgb(76, 160, 172);
+    color: #ffffff;
+    font-weight: normal;
+    padding: 10%;
+}
+
+table{
+    border-collapse: collapse;
+
+}
+
+/* Form */
+Form{
+    padding: 1%;
+    display: flex;
+    flex-direction: column;
+    display: block;
+}
+Form > * {
+    margin: 2%;
+
+}
+input{
+    padding: 1%;
+}
+
+Button{
+    background: rgb(76, 160, 172);
+    color: #ffffff; 
+    border-style: none;
+    padding: 1.5%;
+}
+Select{padding: 1.5%;}
+
+

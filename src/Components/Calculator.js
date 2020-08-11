@@ -101,20 +101,62 @@ export default class Calculator extends React.Component {
         console.log("This is ", display);
         return (
             <div>
-                <Forms handleFormInputs={this.handleFormInputs}/>
-                <Calculations className="Cardstyle" data={this.state}/>
+               
+             
+                <div class="GridContainer">
+                <nav>
+                <img alt="Logo" src="#" />
+                <nav-item>
+                    Dashboard
+                </nav-item>
+                <nav-item>
+                    Track Package
+                </nav-item> 
+                <nav-item>
+                    About
+                </nav-item>
+                <nav-item>
+                    View Expense
+                </nav-item>
+            </nav>
+                <div className="Sidebar">
+                    <ul>
+                        <li><a href="#">Dashboard</a></li>
+                        <li><a href="#">Track Package</a></li>
+                        <li><a href="#">View Expense</a></li>
+                        <li><a href="#">Account</a></li>
+                    </ul>
+                </div>
+                    <div class="GridItem Item1">
+                        <p>Your latest sale revenue</p>
+                            <p>${this.state.balance}</p>
+                    </div>
 
-                <h4>All Expenses</h4>
-                {this.state.list.length === 0 && (<p>Add an expense to get started</p>)}
-                <table className="TableS">
-                    <ItemTableHeaders headers={resultTableHeaders} listCount={this.state.list.length}/>
-                    <ItemTableContents list={this.state.list}/>
-                </table>
-                <h4>Your net profit: {this.state.netProfit}</h4>
+                    <div class="GridItem Item2">
+                        <select id="Graph">
+                           <option>Current Month</option>
+                           <option>Past 6 Month</option>
+                        </select>
+                        <Charts data={this.state.list}/>
 
-                <Charts data={this.state.list}/>
-            </div>
-        )
+                    </div>
+                    <div class="GridItem Item3">
+                        <Forms handleFormInputs={this.handleFormInputs}/>
+                    </div>
+                    <div class="GridItem Item4">
+                        <Calculations data={this.state}/> 
+                    </div>
+                        
+                    {this.state.list.length === 0 && (<p>Add an expense to get started</p>)}
+                        <table className="TableS GridItem Item5">
+                            <ItemTableHeaders headers={resultTableHeaders} listCount={this.state.list.length}/>
+                            <ItemTableContents list={this.state.list}/>
+                        </table>
+                        
+                </div>
+        </div>
+            
+        );
     }
 }
 
@@ -128,7 +170,7 @@ class Charts extends React.Component {
 
     render(){
         return (
-            <div id="charts"/>
+            <div id="charts" />          
         );
     }
 };

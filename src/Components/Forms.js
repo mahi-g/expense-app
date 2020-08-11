@@ -20,19 +20,21 @@ function Forms(props) {
     return (
         <div>
             <form onSubmit={props.handleFormInputs}>
-                <input type="number" name="paid" placeholder="price you paid" step="0.01" min="0" required/>
-                <input type="number" name="sold" placeholder="sold" step="0.01" min="0" required/>
-                <input type="number" name="shipping" placeholder="shipping" step="0.01" min="0" required/>
-                <input type="number" name="other" placeholder="other" step="0.01" min="0" required/>
+                <input type="number" name="paid" placeholder="Price you paid" step="0.01" min="0" required/>
+                <input type="number" name="sold" placeholder="Sold" step="0.01" min="0" required/>
+                <input type="number" name="shipping" placeholder="Shipping" step="0.01" min="0" required/>
+                <input type="number" name="other" placeholder="Other" step="0.01" min="0" required/>
                 <input type="month" name="date" defaultValue="2020-08" required/>
                 <select name="platform">
                     <option value="Etsy">Etsy</option>
                     <option value="Depop">Depop</option>
                     <option value="Ebay">Ebay</option>
                 </select>
+                <label>Add to expense</label>
+                <input type="checkbox"></input>
                 <button>Calculate</button>
-                
             </form>
+            
         </div>
     )
 }

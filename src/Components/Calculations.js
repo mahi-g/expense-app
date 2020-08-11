@@ -1,8 +1,8 @@
 import React from 'react';
-
+import "../App.css"
 const Calculations = (props) => {
     return (
-        <div>
+        <div className="Cardstyle">
             <p>PayPal: {props.data.paypalFee}</p>
             <p>Seller Fee: {props.data.sellerFee}</p>
             <p>Estimated Shipping: {props.data.shippingFee}</p>

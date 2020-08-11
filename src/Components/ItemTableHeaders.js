@@ -14,11 +14,11 @@ function ItemTableHeaders(props) {
             <th key={index}>{header}</th>
         ));
         return (
-            <thead>
-            <tr>
-                {data}
-            </tr>
-            </thead>
+                <thead>
+                    <tr>
+                        {data}
+                    </tr>
+                </thead>
         )
     }else{
         return(<thead></thead>)
