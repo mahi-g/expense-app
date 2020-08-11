@@ -5,7 +5,7 @@ export const drawBarChart = (data) => {
 
     d3.select("svg").remove();
     const height = 250;
-    const width = 350;
+    const width = 450;
 
     const xScale = d3.scaleLinear()
         .domain([0, data.length])
