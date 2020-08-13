@@ -7,7 +7,8 @@ import Calculations from "./Calculations";
 import Forms from "./Forms";
 import ItemTableContents from "./ItemTableContents";
 import ItemTableHeaders from "./ItemTableHeaders";
-
+import Sidebar from "./Sidebar";
+import RecentSales from "./RecentSales";
 //All strings that will be changed sparingly/not at all should be established beforehand..
 const resultTableHeaders = ["Sold", "Paid", "Quantity", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
 
@@ -29,6 +30,7 @@ export default class Calculator extends React.Component {
     handleFormInputs(event) {
         event.preventDefault();
         const target = event.target;
+        console.log(event.target.date.value);
         const form = {};
         for(let i = 0; i < target.length; i++){
             form[target.elements[i].getAttribute("name")] = target.elements[i].value;
@@ -100,61 +102,40 @@ export default class Calculator extends React.Component {
         const display = this.state.list;
         console.log("This is ", display);
         return (
-            <div>
-               
-             
                 <div class="GridContainer">
-                <nav>
-                <img alt="Logo" src="#" />
-                <nav-item>
-                    Dashboard
-                </nav-item>
-                <nav-item>
-                    Track Package
-                </nav-item> 
-                <nav-item>
-                    About
-                </nav-item>
-                <nav-item>
-                    View Expense
-                </nav-item>
-            </nav>
-                <div className="Sidebar">
-                    <ul>
-                        <li><a href="#">Dashboard</a></li>
-                        <li><a href="#">Track Package</a></li>
-                        <li><a href="#">View Expense</a></li>
-                        <li><a href="#">Account</a></li>
-                    </ul>
-                </div>
-                    <div class="GridItem Item1">
-                        <p>Your latest sale revenue</p>
-                            <p>${this.state.balance}</p>
+                    <Sidebar />
+                    <RecentSales list={this.state.list}/>
+                   
+                    <div class="GridItem2">
+                        <h2>Calculate Expense</h2>
+                        <div>
+                            <div class="Card">
+                                <Forms handleFormInputs={this.handleFormInputs}/>
+                            </div>
+                            <div class="Card View">
+                                <Calculations data={this.state}/> 
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="GridItem Item2">
-                        <select id="Graph">
-                           <option>Current Month</option>
-                           <option>Past 6 Month</option>
-                        </select>
-                        <Charts data={this.state.list}/>
-
-                    </div>
-                    <div class="GridItem Item3">
-                        <Forms handleFormInputs={this.handleFormInputs}/>
-                    </div>
-                    <div class="GridItem Item4">
-                        <Calculations data={this.state}/> 
+                  
+                    <div class="GridItem4">
+                        <h2>Revenue</h2>
+                        <div class="Card Item2">
+                            <select id="Graph">
+                            <option>Current Month</option>
+                            <option>Past 6 Month</option>
+                            </select>
+                            <Charts data={this.state.list}/>
+                        </div>
                     </div>
                         
                     {this.state.list.length === 0 && (<p>Add an expense to get started</p>)}
-                        <table className="TableS GridItem Item5">
+                        <table className="TableS Card Item5">
                             <ItemTableHeaders headers={resultTableHeaders} listCount={this.state.list.length}/>
                             <ItemTableContents list={this.state.list}/>
                         </table>
                         
                 </div>
-        </div>
             
         );
     }
