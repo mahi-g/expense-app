@@ -18,7 +18,6 @@ import React from 'react';
  */
 function Forms(props) {
     return (
-        <div>
             <form onSubmit={props.handleFormInputs}>
                 <input type="number" name="paid" placeholder="Price you paid" step="0.01" min="0" required/>
                 <input type="number" name="sold" placeholder="Sold" step="0.01" min="0" required/>
@@ -35,7 +34,6 @@ function Forms(props) {
                 <button>Calculate</button>
             </form>
             
-        </div>
     )
 }
 

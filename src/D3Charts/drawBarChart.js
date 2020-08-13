@@ -37,7 +37,7 @@ export const drawBarChart = (data) => {
         .attr("y", (d) => yScale(d.sold))
         .attr("fill", (d) => {
             if(d.platform === "Ebay") { return "#3ba1d9";}
-            else if(d.platform === "Etsy") { return "salmon";}
+            else if(d.platform === "Etsy") { return "orange";}
             return "#46c6a8";
         })
         .attr("class", "bar");
