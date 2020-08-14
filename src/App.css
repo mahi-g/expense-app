@@ -119,6 +119,9 @@ thead{
     font-weight: normal;
     padding: 10%;
 }
+th{
+    height: 20%;
+}
 
 table{
     border-collapse: collapse;
