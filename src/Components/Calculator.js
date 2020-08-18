@@ -1,7 +1,7 @@
 import React from 'react';
 import "../App.css";
 
-import Tracker from './Tracking';
+import TrackPackages from './TrackPackages';
 import {drawBarChart} from "../D3Charts/drawBarChart"
 import calculateFees from "./mathFunctions";
 import Calculations from "./Calculations";
@@ -104,7 +104,7 @@ export default class Calculator extends React.Component {
         console.log("This is ", display);
         return (
                 <div class="GridContainer">
-                <Tracker />
+                    <TrackPackages />
                     <Sidebar />
                     <RecentSales list={this.state.list}/>
                    

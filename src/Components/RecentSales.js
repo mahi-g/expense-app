@@ -2,9 +2,9 @@ import React from "react";
 import "../App.css";
 const RecentSales = (props) => {
     return(
-        <div class="GridItem1">
+        <div className="GridItem1">
             <h2>Recent Sales</h2>
-            <div class="CardLayout">
+            <div className="CardLayout">
                 {props.list.map((d,i)=>{
                     if(i >= props.list.length-5){
                         return (
