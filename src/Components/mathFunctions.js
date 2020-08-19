@@ -1,5 +1,5 @@
 
-const calculateFees = require('./Calculator.js');
+const calculateFees = require('./Expense.js');
 module.exports = {
     getPaypalFee: (sold) => Math.floor((sold * 0.029 + 0.3) * 100) / 100,
     getSellerFee: (platform,sold)=>{
