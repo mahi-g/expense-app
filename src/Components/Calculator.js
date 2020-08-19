@@ -103,26 +103,26 @@ export default class Calculator extends React.Component {
         const display = this.state.list;
         console.log("This is ", display);
         return (
-                <div class="GridContainer">
+                <div className="GridContainer">
                     <TrackPackages />
                     <Sidebar />
                     <RecentSales list={this.state.list}/>
                    
-                    <div class="GridItem2">
+                    <div className="GridItem2">
                         <h2>Calculate Expense</h2>
                         <div>
-                            <div class="Card">
+                            <div className="Card">
                                 <Forms handleFormInputs={this.handleFormInputs}/>
                             </div>
-                            <div class="Card View">
+                            <div className="Card View">
                                 <Calculations data={this.state}/> 
                             </div>
                         </div>
                     </div>
                   
-                    <div class="GridItem4">
+                    <div className="GridItem4">
                         <h2>Revenue</h2>
-                        <div class="Card Item2">
+                        <div className="Card Item2">
                             <select id="Graph">
                             <option>Current Month</option>
                             <option>Past 6 Month</option>
@@ -136,9 +136,7 @@ export default class Calculator extends React.Component {
                             <ItemTableHeaders headers={resultTableHeaders} listCount={this.state.list.length}/>
                             <ItemTableContents list={this.state.list}/>
                         </table>
-                        
                 </div>
-            
         );
     }
 }

@@ -1,46 +1,106 @@
 import React from 'react';
 
 
-let DELIVERYDATA = [];
 
 class TrackPackages extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            trackingIds: ["9400128206335276889946", "9400128206335287197597"]
+            deliveryData: [],
+            trackingIds: ["9400128206335276889946", "9400128206335287197597"],
         }
+        this.addTracking = this.addTracking.bind(this);
+        this.readData = this.readData.bind(this);
+
     }
-    async readData() {
+
+    addTracking(e) {
+        e.preventDefault();
+        let target = e.target.track.value;
+        this.setState((state)=>({trackingIds:state.trackingIds.concat([target])}));
+        this.readData([target]); //IS THIS BADDD?
+        console.log(this.state.trackingIds);
+    }
+
+    cleanData(text, trackingId){
+        let parser, xmlDoc, summary, detail;
+        let deliveryDatas = [];
+
+        parser = new DOMParser();
+        xmlDoc = parser.parseFromString(text,"text/xml");
+
+
+        detail = xmlDoc.getElementsByTagName("TrackSummary");
+        summary = detail[0].childNodes[0].nodeValue;
+
+        detail = xmlDoc.getElementsByTagName("TrackDetail");
+        for(let i = 0; i < detail.length; i++){
+            deliveryDatas.push(detail[i].childNodes[0].nodeValue)
+        }
+
+        this.setState((state)=>{
+            return {
+                deliveryData: this.state.deliveryData.concat([{trackingId,summary,deliveryDatas}])
+            }
+        });
+        console.log(this.state.deliveryData);
+
+
+    }
+    async readData(tracking) {
         const url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML="+
         "<TrackRequest USERID=\"959NA0006949\">"+
-        trackingAPICall(this.state.trackingIds)+ 
+        trackingAPICall(tracking)+ 
         "</TrackRequest>";
 
-        
         fetch(url)
             .then(response => response.text())
             .then(text => {
+                console.log(text);
                 let x = text.split("</TrackInfo>");
-
-                for(let i = 0; i < x.length; i++){
+                x.map((d,i)=>{
                     if(i !== x.length-1) {
-                        printData(x[i]);
+                        this.cleanData(x[i], tracking[i]);
                     }
-                }
-                
-                console.log(DELIVERYDATA);
-                document.getElementById("track").innerHTML=DELIVERYDATA;
+                })
             })
+
     }
 
     async componentDidMount() {
-        await this.readData();
+        await this.readData(this.state.trackingIds);
     }
+    componentDid() {
+        this.readData(this.state.trackingIds);
+    }
+  
+  
+   
     render() {
-        return (<div id="track"></div>)
+
+        return (
+            <div>
+                <form onSubmit={this.addTracking}>
+                    <input type="text" placeholder="Add a number to track" name="track"></input>
+                    <button>Track</button>
+                </form>
+            
+                <div id="track">
+                    <p>Data as of</p>
+                    <button type="submit" onClick={()=>this.readData(this.state.trackingIds)}>Refresh</button>
+                    <PrintData deliveryData={this.state.deliveryData}/>
+                </div>
+            </div>)
     }
 }
 
+const PrintData = (props) => {
+    return(
+    <div>
+        {props.deliveryData.map((d)=>(<div className="Card"><h4>{d.trackingId}</h4><p>{d.summary}</p></div>))}
+    </div>
+    )
+}
 
 function trackingAPICall(trackingNums){
     let trackID = "";
@@ -48,19 +108,7 @@ function trackingAPICall(trackingNums){
     return trackID;
 }
 
-function printData(text){
-    let parser = new DOMParser();
-    let xmlDoc = parser.parseFromString(text,"text/xml");
 
-    let y = xmlDoc.getElementsByTagName("TrackSummary");
-    let summary = y[0].childNodes[0].nodeValue;
-    DELIVERYDATA.push("<h3>"+summary+"</h3>");
-
-    y = xmlDoc.getElementsByTagName("TrackDetail");
-    for(let i = 0; i < y.length; i++){
-        DELIVERYDATA.push("<p>"+y[i].childNodes[0].nodeValue+"</p>");
-    }
-}
 
 export default TrackPackages;
 
