@@ -30,30 +30,27 @@ class TrackPackages extends React.Component {
         parser = new DOMParser();
         xmlDoc = parser.parseFromString(text,"text/xml");
 
-
         detail = xmlDoc.getElementsByTagName("TrackSummary");
-        summary = detail[0].childNodes[0].nodeValue;
+        console.log(detail);
+        summary = detail[0].textContent;
+        console.log(summary);
 
         detail = xmlDoc.getElementsByTagName("TrackDetail");
-        for(let i = 0; i < detail.length; i++){
-            deliveryDatas.push(detail[i].childNodes[0].nodeValue)
+        for(const [key, value] of Object.entries(detail)){
+            deliveryDatas.push(value.childNodes[0].nodeValue)
         }
 
-        this.setState((state)=>{
-            return {
-                deliveryData: this.state.deliveryData.concat([{trackingId,summary,deliveryDatas}])
-            }
-        });
+        this.setState((state)=>(
+            {deliveryData: this.state.deliveryData.concat([{trackingId,summary,deliveryDatas}])}
+        ));
         console.log(this.state.deliveryData);
 
 
     }
     async readData(tracking) {
         
-        if(tracking.length>1){
-            this.setState(()=>({
-                deliveryData: []
-            }));
+        if(tracking.length>1) {
+            this.setState(()=>({deliveryData: []}));
         }
 
         const url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML="+
@@ -72,20 +69,13 @@ class TrackPackages extends React.Component {
                     }
                 })
             })
-
     }
 
     async componentDidMount() {
         await this.readData(this.state.trackingIds);
     }
-
-    
-   
-  
-  
    
     render() {
-
         return (
             <div>
                 <form onSubmit={this.addTracking}>
@@ -98,14 +88,19 @@ class TrackPackages extends React.Component {
                     <button type="submit" onClick={()=>this.readData(this.state.trackingIds)}>Refresh</button>
                     <PrintData deliveryData={this.state.deliveryData}/>
                 </div>
-            </div>)
+            </div>
+            );
     }
 }
 
 const PrintData = (props) => {
     return(
     <div>
-        {props.deliveryData.map((d)=>(<div className="Card"><h4>{d.trackingId}</h4><p>{d.summary}</p></div>))}
+        {props.deliveryData.map((d)=>(
+            <div className="Card">
+                <h4>{d.trackingId}</h4>
+                <p>{d.summary}</p>
+            </div>))}
     </div>
     )
 }

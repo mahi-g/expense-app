@@ -1,19 +1,22 @@
 import React from 'react';
 import "../App.css";
 
-import TrackPackages from './TrackPackages';
-import {drawBarChart} from "../D3Charts/drawBarChart"
-import calculateFees from "./mathFunctions";
-import Calculations from "./Calculations";
-import Forms from "./Forms";
-import ItemTableContents from "./ItemTableContents";
-import ItemTableHeaders from "./ItemTableHeaders";
-import Sidebar from "./Sidebar";
-import RecentSales from "./RecentSales";
-//All strings that will be changed sparingly/not at all should be established beforehand..
-const resultTableHeaders = ["Sold", "Paid", "Quantity", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
 
-export default class Calculator extends React.Component {
+import {
+    BrowserRouter as Router,
+    Route,
+    Switch,
+    Link
+} from 'react-router-dom';
+
+
+import calculateFees from "./mathFunctions";
+import Dashboard from "./Dashboard";
+import TrackPackages from "./TrackPackages";
+import ViewExpenses from "./ViewExpenses";
+
+
+class Expense extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -41,7 +44,6 @@ export default class Calculator extends React.Component {
         const balance =  calculateFees.getBalance(form.sold,paypalFee,sellerFee,form.shipping,form.other);
         const itemProfit = calculateFees.getProfit(balance, form.paid);
 
-        console.log("current", this.state);
         this.setState((previous) => {
                 return {
                     list: previous.list.concat([{
@@ -68,11 +70,8 @@ export default class Calculator extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log("previous state", prevState);
         const json = JSON.stringify(this.state);
-        console.log("Updated:", this.state);
         localStorage.setItem('fooooooooo', json);
-        console.log("Updated");
     }
 
     componentDidMount() {
@@ -95,67 +94,43 @@ export default class Calculator extends React.Component {
         } catch (error) {
             data = error.message
         }
-        console.log("did mount");
-        console.log("mount current", this.state);
+       
     }
 
     render() {
-        const display = this.state.list;
-        console.log("This is ", display);
         return (
                 <div className="GridContainer">
-                    <TrackPackages />
-                    <Sidebar />
-                    <RecentSales list={this.state.list}/>
-                   
-                    <div className="GridItem2">
-                        <h2>Calculate Expense</h2>
-                        <div>
-                            <div className="Card">
-                                <Forms handleFormInputs={this.handleFormInputs}/>
-                            </div>
-                            <div className="Card View">
-                                <Calculations data={this.state}/> 
-                            </div>
-                        </div>
-                    </div>
-                  
-                    <div className="GridItem4">
-                        <h2>Revenue</h2>
-                        <div className="Card Item2">
-                            <select id="Graph">
-                            <option>Current Month</option>
-                            <option>Past 6 Month</option>
-                            </select>
-                            <Charts data={this.state.list}/>
-                        </div>
+                    <Router>
+                        
+                    <div className="Sidebar">
+                        <h3>Hi Mahi</h3>
+                        <ul>
+                            <li><Link to="/">Dashboard</Link></li>
+                            <li><Link to="/track">Track Packages</Link></li>
+                            <li><Link to="/expenses">Expenses</Link></li>
+                                {// <li><Link to="/">Account</Link></li> 
+                                }
+                        </ul>
                     </div>
                         
-                    {this.state.list.length === 0 && (<p>Add an expense to get started</p>)}
-                        <table className="TableS Card Item5">
-                            <ItemTableHeaders headers={resultTableHeaders} listCount={this.state.list.length}/>
-                            <ItemTableContents list={this.state.list}/>
-                        </table>
+                        <Switch>
+                            <Route path="/track"><TrackPackages/></Route>
+                            <Route path="/expenses"><ViewExpenses
+                                expenseList={this.state.list}
+                            /></Route>
+                            <Route path="/"><Dashboard 
+                                state={this.state}
+                                handleFormInputs={this.handleFormInputs}/>
+                            </Route>
+                        </Switch>
+                        
+                    </Router>
                 </div>
         );
     }
 }
 
-class Charts extends React.Component {   
-    componentDidMount() {
-        drawBarChart(this.props.data);
-    }
-    componentDidUpdate(){
-        drawBarChart(this.props.data);
-    }
-
-    render(){
-        return (
-            <div id="charts" />          
-        );
-    }
-};
 
 
-export {Calculator};
+export default Expense;
 

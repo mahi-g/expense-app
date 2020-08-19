@@ -1,14 +1,16 @@
 import React from 'react';
-import Calculator from './Components/Calculator';
+import Expense from './Components/Expense';
 import './App.css'
+
+
 class App extends React.Component {
     render() {
         return(
             <div className={"App"}>
-
                 <div className={"Body"}>
-                    <Calculator/>
+                    <Expense/>
                 </div>
+               
                 <div className={"Footer"}>
                     {/*Empty For Now*/}
                 </div>
