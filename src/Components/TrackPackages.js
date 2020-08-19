@@ -1,6 +1,6 @@
 import React from 'react';
 
-
+//9400128206335287201003 another id
 
 class TrackPackages extends React.Component {
     constructor(props) {
@@ -23,6 +23,7 @@ class TrackPackages extends React.Component {
     }
 
     cleanData(text, trackingId){
+
         let parser, xmlDoc, summary, detail;
         let deliveryDatas = [];
 
@@ -48,6 +49,13 @@ class TrackPackages extends React.Component {
 
     }
     async readData(tracking) {
+        
+        if(tracking.length>1){
+            this.setState(()=>({
+                deliveryData: []
+            }));
+        }
+
         const url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML="+
         "<TrackRequest USERID=\"959NA0006949\">"+
         trackingAPICall(tracking)+ 
@@ -70,9 +78,9 @@ class TrackPackages extends React.Component {
     async componentDidMount() {
         await this.readData(this.state.trackingIds);
     }
-    componentDid() {
-        this.readData(this.state.trackingIds);
-    }
+
+    
+   
   
   
    
