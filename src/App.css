@@ -7,12 +7,14 @@
     width: 100vw;
     height: 100vh;
     margin: 0%;
+    padding: 0;
     display: grid;
     grid-template-columns: .75fr 2fr 2fr;
     grid-template-rows: minmax(1fr,auto);
     overflow-x: hidden;
   
-}
+}               
+
 .Cardstyle{
     display: flex;
     flex-direction: row;
@@ -71,8 +73,6 @@
     color: white;
     height: 100%;
     background: rgb(30, 47, 63);
-    border: 1px solid rgb(231, 230, 236);
-    z-index: -1;
     overflow-x: hidden;
     grid-area: "sidebar";
     grid-column: 1 / 2;
@@ -96,7 +96,6 @@ ul li{
     padding: 5%;
     margin-bottom: 1%;
     text-align: center;
-    background: rgb(41, 63, 85);
 }
 ul li:hover{
     background: rgb(34, 51, 68);

@@ -8,13 +8,11 @@ const RecentSales = (props) => {
                 {props.list.map((d,i)=>{
                     if(i >= props.list.length-5){
                         return (
-                            <div className="Expense">
+                            <div className="Expense" key={i}>
                                 <p>Sold at ${d.sold}</p>
                                 <p>Fees: {d.shippingFee+d.paypalFee}</p>
-                                
                                 <hr />
                                 <h3>${d.itemProfit}</h3>
-
                             </div>
                         );
                     }
