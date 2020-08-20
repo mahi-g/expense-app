@@ -1,7 +1,9 @@
-import Calculations from "./Calculations";
-import {drawBarChart} from "../D3Charts/drawBarChart"
-import Forms from "./Forms";
 import React from 'react';
+
+
+import Calculations from "./Calculations";
+import {drawBarChart} from "../charts/drawBarChart"
+import Forms from "./Forms";
 import RecentSales from "./RecentSales";
 
 
