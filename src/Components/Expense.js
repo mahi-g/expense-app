@@ -4,16 +4,11 @@ import "../App.css";
 
 import {
     BrowserRouter as Router,
-    Route,
-    Switch,
-    Link
 } from 'react-router-dom';
 
-
-import calculateFees from "./mathFunctions";
-import Dashboard from "./Dashboard";
-import TrackPackages from "./TrackPackages";
-import ViewExpenses from "./ViewExpenses";
+import calculateFees from "../pureFunctions/calculateFees";
+import Routes from "../routes/routes.js";
+import Sidebar from "./Sidebar.js";
 
 
 class Expense extends React.Component {
@@ -99,33 +94,20 @@ class Expense extends React.Component {
 
     render() {
         return (
-                <div className="GridContainer">
-                    <Router>
-                        
-                    <div className="Sidebar">
-                        <h3>Hi Mahi</h3>
-                        <ul>
-                            <li><Link to="/">Dashboard</Link></li>
-                            <li><Link to="/track">Track Packages</Link></li>
-                            <li><Link to="/expenses">Expenses</Link></li>
-                                {// <li><Link to="/">Account</Link></li> 
-                                }
-                        </ul>
+            <div className={"App"}>
+                <div className={"Body"}>
+                    <div className="GridContainer">
+                        <Router> 
+                            <Sidebar />
+                            <Routes state={this.state} handleFormInputs={this.handleFormInputs}/>
+                        </Router>
                     </div>
-                        
-                        <Switch>
-                            <Route path="/track"><TrackPackages/></Route>
-                            <Route path="/expenses"><ViewExpenses
-                                expenseList={this.state.list}
-                            /></Route>
-                            <Route path="/"><Dashboard 
-                                state={this.state}
-                                handleFormInputs={this.handleFormInputs}/>
-                            </Route>
-                        </Switch>
-                        
-                    </Router>
                 </div>
+                <div className={"Footer"}>
+                    {/*Empty For Now*/}
+                </div>
+            </div>
+
         );
     }
 }
@@ -133,4 +115,5 @@ class Expense extends React.Component {
 
 
 export default Expense;
+;
 
