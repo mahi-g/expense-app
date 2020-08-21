@@ -95,11 +95,13 @@ class App extends React.Component {
         return (
             <Router>
                 <div className={"App"}>
-                    <div className={"Header"}>
-                        <Sidebar />
-                    </div>
                     <div className={"Body"}>
                         <div className="GridContainer">
+                                <Sidebar />
+                                <div className="Topbar">
+                                    <button>New Expense</button>
+                                </div>
+                                
                                 <Routes state={this.state} handleFormInputs={this.handleFormInputs}/>
                         </div>
                     </div>
