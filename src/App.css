@@ -36,16 +36,15 @@
     background: rgb(76, 160, 172);
     display: flex;
 }
-.GridItem1, .GridItem2, .GridItem3, .GridItem4, .GridItem5{ margin:2%;}
-.GridItem1{
-    grid-column: 2/4;
-}
+.GridItem2, .GridItem5{ margin:2%;}
+
 .GridItem2{
     grid-column: 2/4;
     grid-row: 2;
-}.GridItem3{
-}.GridItem4{
-}.GridItem5{
+}
+.GridItem5{
+    min-width: 100%;
+    grid-column: 2 / 4;
 }
 
 .Item1{
@@ -59,12 +58,10 @@
 .Item2 Select {
     margin: 1% 60% 1% 0%;
 }
-.Item4{
-    display: flex;
-    justify-content: space-around;
-}
-.Item5{
+.Topbar{
     grid-column: 2/4;
+    background: white;
+    padding: 0;
 }
 
 /* side bar */
@@ -95,7 +92,6 @@ ul li{
     list-style: none;
     padding: 5%;
     margin-bottom: 1%;
-    text-align: center;
 }
 ul li:hover{
     background: rgb(34, 51, 68);
@@ -132,7 +128,7 @@ table{
     height: 170px;
     border-radius: 3px;
     overflow: visible;
-    border-top: 10px solid rgb(230, 85, 85);
+    border-top: 10px solid rgb(139, 171, 219);
     text-align: center;
   }
  .CardLayout{
@@ -164,6 +160,6 @@ Button{
 Select{padding: 1.5%;}
 
 
-hr{
+.Expense > hr{
     border: .2px solid rgb(237, 242, 246);
 }

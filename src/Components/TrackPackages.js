@@ -77,13 +77,13 @@ class TrackPackages extends React.Component {
    
     render() {
         return (
-            <div>
-                <form onSubmit={this.addTracking}>
+            <div className="GridItem2">
+                <form onSubmit={this.addTracking} className="Card">
                     <input type="text" placeholder="Add a number to track" name="track"></input>
                     <button>Track</button>
                 </form>
             
-                <div id="track">
+                <div>
                     <p>Data as of</p>
                     <button type="submit" onClick={()=>this.readData(this.state.trackingIds)}>Refresh</button>
                     <PrintData deliveryData={this.state.deliveryData}/>

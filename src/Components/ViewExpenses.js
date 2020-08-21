@@ -9,7 +9,7 @@ class ViewExpenses extends React.Component {
         return(
             <div className="GridItem5">
                 {this.props.expenseList.length === 0 && (<p>Add an expense to get started</p>)}
-                <table className="TableS Card Item5">
+                <table className="TableS Card">
                     <ItemTableHeaders headers={resultTableHeaders} listCount={this.props.expenseList.length}/>
                     <ItemTableContents list={this.props.expenseList}/>
                 </table>
