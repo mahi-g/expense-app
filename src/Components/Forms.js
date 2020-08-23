@@ -23,7 +23,7 @@ function Forms(props) {
                 <input type="number" name="sold" placeholder="Sold" step="0.01" min="0" required/>
                 <input type="number" name="shipping" placeholder="Shipping" step="0.01" min="0" required/>
                 <input type="number" name="other" placeholder="Other" step="0.01" min="0" required/>
-                <input type="month" name="date" defaultValue="2020-08" required/>
+                <input type="date" name="date" defaultValue="2020-08" required/>
                 <select name="platform">
                     <option value="Etsy">Etsy</option>
                     <option value="Depop">Depop</option>

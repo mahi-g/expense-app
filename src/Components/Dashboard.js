@@ -1,11 +1,11 @@
 import React from 'react';
 
-
 import Calculations from "./Calculations";
 import {drawBarChart} from "../charts/drawBarChart"
 import Forms from "./Forms";
 import RecentSales from "./RecentSales";
 
+import sortList from "../pureFunctions/sorting.js";
 
 export default class Dashboard extends React.Component {
     constructor(props){
@@ -26,7 +26,6 @@ export default class Dashboard extends React.Component {
                         </div>
                     </div>
             
-                
                     <h2>Revenue</h2>
                     <div className="Card">
                         <select id="Graph">
@@ -44,9 +43,14 @@ export default class Dashboard extends React.Component {
 class Charts extends React.Component {   
     componentDidMount() {
         drawBarChart(this.props.data);
+
+
     }
     componentDidUpdate(){
         drawBarChart(this.props.data);
+        sortList.sortByDate(this.props.data);
+
+        
     }
 
     render(){
@@ -55,3 +59,4 @@ class Charts extends React.Component {
         );
     }
 };
+
