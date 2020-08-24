@@ -29,10 +29,10 @@ class App extends React.Component {
     handleFormInputs(event) {
         event.preventDefault();
         const target = event.target;
-        console.log(event.target.date.value);
+        //console.log(event.target.date.value);
         const form = {};
         for(let i = 0; i < target.length; i++){
-            form[target.elements[i].getAttribute("name")] = target.elements[i].value;
+                form[target.elements[i].getAttribute("name")] = target.elements[i].value;
         }
         const paypalFee = calculateFees.getPaypalFee(form.sold);
         const sellerFee = calculateFees.getSellerFee(form.platform, form.sold)
@@ -66,13 +66,13 @@ class App extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const json = JSON.stringify(this.state);
-        localStorage.setItem('fooooooooo', json);
+        localStorage.setItem('foooooooooo', json);
     }
 
     componentDidMount() {
         let data;
         try {
-            data = localStorage.getItem('fooooooooo');
+            data = localStorage.getItem('foooooooooo');
             data = JSON.parse(data);
             if (data.list) {
                 this.setState({
@@ -101,7 +101,6 @@ class App extends React.Component {
                                 <div className="Topbar">
                                     <button>New Expense</button>
                                 </div>
-                                
                                 <Routes state={this.state} handleFormInputs={this.handleFormInputs}/>
                         </div>
                     </div>
