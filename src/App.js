@@ -15,7 +15,7 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            list: [],
+            list: [{}],
             balance: 0,
             itemProfit: 0,
             paypalFee: 0,
