@@ -1,5 +1,6 @@
 import React from 'react';
 
+import Chart from "./Chart";
 import Calculations from "./Calculations";
 import {drawBarChart} from "../charts/drawBarChart"
 import Forms from "./Forms";
@@ -7,22 +8,19 @@ import RecentSales from "./RecentSales";
 
 import sortList from "../pureFunctions/sorting.js";
 
-export default class Dashboard extends React.Component {
-    constructor(props){
-        super(props)
-    }
-    render(){
+const Dashboard = (props) => {
         return(
             <div className="GridItem2">
-                <RecentSales list={this.props.state.list}/>
+                <Chart />
+                <RecentSales list={props.state.list}/>
                         
                     <h2>Calculate Expense</h2>
                     <div>
                         <div className="Card">
-                            <Forms handleFormInputs={this.props.handleFormInputs}/>
+                            <Forms handleFormInputs={props.handleFormInputs}/>
                         </div>
                         <div className="Card View">
-                            <Calculations data={this.props.state}/> 
+                            <Calculations data={props.state}/> 
                         </div>
                     </div>
             
@@ -32,13 +30,13 @@ export default class Dashboard extends React.Component {
                         <option>Current Month</option>
                         <option>Past 6 Month</option>
                         </select>
-                        <Charts data={this.props.state.list}/>
+                        <Charts data={props.state.list}/>
                     </div>
             </div>
         );
             
-    }
-}
+    
+};
 
 class Charts extends React.Component {   
     componentDidMount() {
@@ -60,3 +58,5 @@ class Charts extends React.Component {
     }
 };
 
+
+export default Dashboard;
