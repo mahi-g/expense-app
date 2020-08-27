@@ -1,62 +1,64 @@
 import React from 'react';
 
+import LineChart from "./LineChart";
+import PieChart from "./PieChart";
 import Calculations from "./Calculations";
 import {drawBarChart} from "../charts/drawBarChart"
 import Forms from "./Forms";
 import RecentSales from "./RecentSales";
 
-import sortList from "../pureFunctions/sorting.js";
 
-export default class Dashboard extends React.Component {
-    constructor(props){
-        super(props)
-    }
-    render(){
-        return(
-            <div className="GridItem2">
-                <RecentSales list={this.props.state.list}/>
-                        
-                    <h2>Calculate Expense</h2>
-                    <div>
-                        <div className="Card">
-                            <Forms handleFormInputs={this.props.handleFormInputs}/>
-                        </div>
-                        <div className="Card View">
-                            <Calculations data={this.props.state}/> 
-                        </div>
-                    </div>
-            
-                    <h2>Revenue</h2>
-                    <div className="Card">
-                        <select id="Graph">
-                        <option>Current Month</option>
-                        <option>Past 6 Month</option>
-                        </select>
-                        <Charts data={this.props.state.list}/>
-                    </div>
+const Dashboard = (props) => {
+    return (
+        <div className="GridItem2">
+            <h2>Revenue</h2>
+            <div className="Card">
+                <select id="Graph">
+                    <option>Current Month</option>
+                    <option>Past 6 Month</option>
+                </select>
+                <PieChart data={props.state.list}/>
             </div>
-        );
-            
-    }
-}
+            <div className="Card">
+                <select id="Graph">
+                    <option>Current Month</option>
+                    <option>Past 6 Month</option>
+                </select>
+                <PieChart data={props.state.list}/>
+            </div>
 
-class Charts extends React.Component {   
+            <RecentSales list={props.state.list}/>
+
+            <h2>Calculate Expense</h2>
+            <div>
+                <div className="Card">
+                    <Forms handleFormInputs={props.handleFormInputs}/>
+                </div>
+                <div className="Card View">
+                    <Calculations data={props.state}/>
+                </div>
+            </div>
+        </div>
+    );
+
+
+};
+
+class Charts extends React.Component {
     componentDidMount() {
         drawBarChart(this.props.data);
-
-
     }
-    componentDidUpdate(){
+
+    componentDidUpdate() {
         drawBarChart(this.props.data);
-        sortList.sortByDate(this.props.data);
-
-        
     }
 
-    render(){
+    render() {
         return (
-            <div id="charts" />          
+            <div id="charts"/>
         );
     }
 };
 
+
+export default Dashboard;

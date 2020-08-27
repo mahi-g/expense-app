@@ -24,8 +24,12 @@ class App extends React.Component {
             netProfit: 0,
         };
         this.handleFormInputs = this.handleFormInputs.bind(this);
-    }
+        this.handleDeleteOption = this.handleDeleteOption.bind(this);
 
+    }
+    handleDeleteOption(eventValue){
+        this.setState(state => ({list: state.list.filter((d,i)=> i!==eventValue)}));
+    }
     handleFormInputs(event) {
         event.preventDefault();
         const target = event.target;
@@ -67,6 +71,7 @@ class App extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         const json = JSON.stringify(this.state);
         localStorage.setItem('foooooooooo', json);
+        console.log(this.state.list);
     }
 
     componentDidMount() {
@@ -101,7 +106,11 @@ class App extends React.Component {
                                 <div className="Topbar">
                                     <button>New Expense</button>
                                 </div>
-                                <Routes state={this.state} handleFormInputs={this.handleFormInputs}/>
+                                <Routes 
+                                    state={this.state} 
+                                    handleFormInputs={this.handleFormInputs}
+                                    handleDeleteOption = {this.handleDeleteOption}
+                                />
                         </div>
                     </div>
                     <div className={"Footer"}>
