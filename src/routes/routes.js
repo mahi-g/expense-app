@@ -12,12 +12,17 @@ const Routes = (props) =>{
     return(
             <Switch>
                 <Route path="/track"><TrackPackages/></Route>
-                <Route path="/expenses"><ViewExpenses
-                    expenseList={props.state.list}/>
+                <Route path="/expenses">
+                    <ViewExpenses
+                        expenseList={props.state.list}
+                        handleDeleteOption = {props.handleDeleteOption}
+                    />
                 </Route>
-                <Route path="/"><Dashboard 
-                    state={props.state}
-                    handleFormInputs={props.handleFormInputs}/>
+                <Route path="/">
+                    <Dashboard 
+                        state={props.state}
+                        handleFormInputs={props.handleFormInputs}
+                    />
                 </Route>
             </Switch>    
     );

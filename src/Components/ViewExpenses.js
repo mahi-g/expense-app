@@ -5,13 +5,24 @@ import React from 'react';
 const resultTableHeaders = ["Sold", "Paid", "Quantity", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
 
 class ViewExpenses extends React.Component {
+    constructor(props){
+        super(props);
+        this.handleDelete = this.handleDelete.bind(this);
+    }
+    handleDelete(e){
+        e.preventDefault();
+        this.props.handleDeleteOption(parseInt(e.target.value));
+    }
     render(){
         return(
             <div className="GridItem5">
                 {this.props.expenseList.length === 0 && (<p>Add an expense to get started</p>)}
                 <table className="TableS Card">
                     <ItemTableHeaders headers={resultTableHeaders} listCount={this.props.expenseList.length}/>
-                    <ItemTableContents list={this.props.expenseList}/>
+                    <ItemTableContents 
+                        list={this.props.expenseList}
+                        handleDelete={this.handleDelete}
+                    />
                 </table>
             </div>
         );
@@ -31,7 +42,7 @@ function ItemTableHeaders(props) {
                     </tr>
                 </thead>
         )
-    }else{
+    } else {
         return(<thead></thead>)
     }
 }
@@ -47,7 +58,7 @@ function ItemTableContents(props) {
         return (
             <tr key={index}>
                 {tableData}
-                <button>x</button>
+                <td><button value={index} onClick={props.handleDelete}>x</button></td>
             </tr>
         )
     });

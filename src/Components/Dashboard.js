@@ -1,6 +1,7 @@
 import React from 'react';
 
-import Chart from "./Chart";
+import LineChart from "./LineChart";
+import PieChart from "./PieChart";
 import Calculations from "./Calculations";
 import {drawBarChart} from "../charts/drawBarChart"
 import Forms from "./Forms";
@@ -16,8 +17,16 @@ const Dashboard = (props) => {
                     <option>Current Month</option>
                     <option>Past 6 Month</option>
                 </select>
-                <Chart data={props.state.list}/>
+                <PieChart data={props.state.list}/>
             </div>
+            <div className="Card">
+                <select id="Graph">
+                    <option>Current Month</option>
+                    <option>Past 6 Month</option>
+                </select>
+                <PieChart data={props.state.list}/>
+            </div>
+
             <RecentSales list={props.state.list}/>
 
             <h2>Calculate Expense</h2>
@@ -29,9 +38,6 @@ const Dashboard = (props) => {
                     <Calculations data={props.state}/>
                 </div>
             </div>
-            
-
-            
         </div>
     );
 
@@ -41,13 +47,10 @@ const Dashboard = (props) => {
 class Charts extends React.Component {
     componentDidMount() {
         drawBarChart(this.props.data);
-
-
     }
 
     componentDidUpdate() {
         drawBarChart(this.props.data);
-
     }
 
     render() {
