@@ -66,7 +66,6 @@
 
 /* side bar */
 .Sidebar{
-    text-align: center;
     color: white;
     height: 100%;
     background: rgb(30, 47, 63);
@@ -87,11 +86,12 @@
 
 ul{
     width: 100%;
+    text-align: left;
 }
 ul li{
     list-style: none;
     padding: 5%;
-    margin-bottom: 1%;
+    border-bottom: 2px solid rgb(34, 51, 68);
 }
 ul li:hover{
     background: rgb(34, 51, 68);

@@ -19,13 +19,15 @@ const Dashboard = (props) => {
                 </select>
                 <PieChart data={props.state.list}/>
             </div>
-            <div className="Card">
-                <select id="Graph">
-                    <option>Current Month</option>
-                    <option>Past 6 Month</option>
-                </select>
-                <PieChart data={props.state.list}/>
-            </div>
+            {
+            // <div className="Card">
+            //     <select id="Graph">
+            //         <option>Current Month</option>
+            //         <option>Past 6 Month</option>
+            //     </select>
+            //     <PieChart data={props.state.list}/>
+            // </div>
+            }
 
             <RecentSales list={props.state.list}/>
 
