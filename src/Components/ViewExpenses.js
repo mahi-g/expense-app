@@ -53,7 +53,7 @@ function ItemTableContents(props) {
         for (const [key, value] of Object.entries(expense)) {
             tableData.push(
                 <td>{value}</td>
-            )
+            ) 
         }
         return (
             <tr key={index}>

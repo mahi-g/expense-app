@@ -1,7 +1,6 @@
 import React from 'react';
 import "./App.css";
 
-
 import {
     BrowserRouter as Router,
 } from 'react-router-dom';
@@ -55,7 +54,7 @@ class App extends React.Component {
                         sellerFee,
                         itemProfit,
                         platform:form.platform,
-                        date:form.date
+                        date: form.date
                     }]),
                     balance,
                     itemProfit,
