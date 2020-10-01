@@ -34,7 +34,7 @@ const PieChart = (props) => {
         },
         series: [
             {
-                name: "Browsers",
+                name: "Platforms",
                 colorByPoint: true,
                 data: [
                     {
@@ -61,9 +61,8 @@ const PieChart = (props) => {
         highcharts={Highcharts}
         options={options}
         oneToOne={true}
-    />
+        />
     );
-    
 }
 
 

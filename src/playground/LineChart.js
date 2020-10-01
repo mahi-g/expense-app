@@ -3,72 +3,98 @@ import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 
 const LineChart = (props) => {
-    sortByDate(props.data);
+    
+    sortByDate(props.data, props.selectedValue);
 
     let startMonth;
     let startYear;
     const currDate = new Date();
     const endMonth = parseInt(currDate.getMonth());
     const endYear = parseInt(currDate.getFullYear());
-    let title = "Current Month";
     if(props.selectedValue === "six-month"){
-        let title = "Six Months";
         if(endMonth >= 5){
             //5 is the 6th month
-            startMonth = endMonth-6; 
+            startMonth = endMonth-5; 
             startYear = endYear;
         }
         else{
-            startMonth = 12+endMonth-6;
+            startMonth = 12+endMonth-5;
             startYear = endYear-1;
         } 
     }
-    
 
-    //date initializer starts at 1 instead of 0
-    startMonth++; 
+    startMonth++; //date initializer starts at 1 instead of 0
     const startDate = new Date(startYear+"-"+startMonth);
 
-    //filter the expenses by platforms
     let depopExpenses = getExpensesByPlatform(props.data,"Depop", startDate);
     let etsyExpenses =  getExpensesByPlatform(props.data,"Etsy", startDate);
     let ebayExpenses =  getExpensesByPlatform(props.data,"Ebay", startDate);
+
+    console.log(depopExpenses);
     
-    //get the numbers of sales in an object 
     let depopSales = getNumberOfSales(depopExpenses, startMonth, startYear);
     let etsySales = getNumberOfSales(etsyExpenses, startMonth, startYear);
-    let ebaySales = getNumberOfSales(ebayExpenses, startMonth, startYear);
+    let ebaySales = getNumberOfSales(ebayExpenses, startMonth, );
 
-    //convert the object to 2-d array
+    console.log(depopSales);
+    console.log(etsySales);
+
+
     let depopData = getLineChartData(depopSales, startYear, endYear);
     let etsyData = getLineChartData(etsySales, startYear, endYear);
     let ebayData = getLineChartData(ebaySales, startYear, endYear);
 
-    const items = [
-        {
-            name: "Depop",
-            data: depopData
+    console.log(depopData);
+    // console.log(etsyData);
+    // console.log(ebayData);
+
+    // let depopArray = [];
+    // depopExpenses.forEach((element)=>{
+    //     console.log(new Date(element.date));
+    //     console.log(new Date(startYear+"-"+startMonth));
+    //     console.log()
+    //     const [y,m,d]= element.date.split("-");
+    //     console.log(y+"-"+m);
+    //     console.log(startYear+"-"+startMonth+","+year+"-"+month);
+    //     if((y>=startYear && y<=year) && ((parseInt(m))>=startMonth && (parseInt(m))<=month)){
+    //         depopArray.push(element);
+    //     }
+    // });
+
+    const items =[{
+        name: "Depop",
+        data: depopData
         },
         {
-            name: "Etsy",
+            name: "etsyData",
             data: etsyData
-        },
-        {
-            name: "Ebay",
-            data: ebayData
         }
-    ];
     
+    // {
+    //     name: "Depop",
+    //     data: [
+    //         [Date.UTC(2019, 11, 1), 15],
+    //         [Date.UTC(2020, 0, 1), 80],
+    //         [Date.UTC(2020, 1, 1), 0],
+    //         [Date.UTC(2020, 2, 1), 29.9],
+    //         [Date.UTC(2020, 3, 1), 71.5],
+    //         [Date.UTC(2020, 4, 1), 106.4],
+    //         [Date.UTC(2020, 5, 1), 200]
+    //     ]
+    // }
+];
+
+
     const options = {        
             title: {
-                text: "Sales trend:"+title
+                text: "Title:"+props.selectedValue
             },
         
-            yAxis: {
-                title: {
-                    text: 'Number of Sales'
-                }
-            },
+            // yAxis: {
+            //     title: {
+            //         text: 'Number of Employees'
+            //     }
+            // },
             
             xAxis:{
                 type: 'datetime'
@@ -88,6 +114,18 @@ const LineChart = (props) => {
                     },
                 }
             },
+        
+            // series: [{
+            //     name: 'Ebay',
+            //     data: [43934, 52503, -57177, 69658, 97031, 119931, 137133, 154175]
+            // }, {
+            //     name: 'Etsy',
+            //     data: [24916, 24064, 29742, 29851, 32490, 30282, 38121, 40434]
+            // }, {
+            //     name: 'Depop',
+            //     data: [11744, 17722, 16005, 19771, 20185, 24377, 32147, 39387]
+            // }],
+
             series: items,
         
             responsive: {
@@ -118,18 +156,15 @@ const LineChart = (props) => {
 
     );
 }
+function sortByDate(list, select){
+    list.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    return list;
 
-
-
-//Sorts the expense list by 
-const sortByDate = (expenses) => {
-    expenses.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    return expenses;
 }
 
 
-//Filters expenses by platform, then by date range 
-//Return value is an object
+//filter expenses by platform, then by date range 
+//returns an object
 const getExpensesByPlatform = (expenses, platformName, startDate) => {
     return expenses.filter( expense => expense.platform===platformName).filter(
         expense => new Date(expense.date)>= startDate && new Date(expense.date) <= new Date()
@@ -137,35 +172,30 @@ const getExpensesByPlatform = (expenses, platformName, startDate) => {
 }
 
 
-//Creates an object with the given month/year range as key and initializes the number of sales as 0
-//Counts the number of sales for each occuring month, then adds it to the object key
-const getNumberOfSales = (expenses, startMonth, startYear) =>{
-    let numSalesObj = {};
-    let month;
-    let year;
+const getNumberOfSales = (expenses, startMonth, year) =>{
+    let obj = {};
     for(let i = 0; i < 6; i++){
-        if(startMonth > 11){
+        if(startMonth > 12){
             startMonth = 1;
-            startYear++;
-            numSalesObj[startMonth+"-"+startYear] = 0;
+            year++;
+            obj[startMonth+"-"+year] = 0;
         }
-        else {
-            numSalesObj[startMonth+"-"+startYear] = 0;
+        else{
+            obj[startMonth+"-"+year] = 0;
         }
         startMonth++;
     }
 
     expenses.forEach((expense) => {
-        month = parseInt(new Date(expense.date).getMonth());
-        year = new Date(expense.date).getFullYear();
-        numSalesObj[month+"-"+year] += 1;
+        let month = parseInt(new Date(expense.date).getMonth())+1;
+        let year = parseInt(new Date(expense.date).getFullYear());
+
+        obj[month+"-"+year] += 1;
     });
 
-    return numSalesObj;
+    return obj;
 }
 
-//Takes an expense object with key value pair of date and number of sales
-//Returns a 2-d array with dates and number of sales for Highchart
 const getLineChartData = (expenses, startYear, endYear) => {
     let data = [];
     let date;

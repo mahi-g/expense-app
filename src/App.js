@@ -54,7 +54,7 @@ class App extends React.Component {
                         sellerFee,
                         itemProfit,
                         platform:form.platform,
-                        date:form.date
+                        date: form.date
                     }]),
                     balance,
                     itemProfit,
