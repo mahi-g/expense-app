@@ -50,21 +50,6 @@ const Dashboard = (props) => {
 
 };
 
-class Charts extends React.Component {
-    componentDidMount() {
-        drawBarChart(this.props.data);
-    }
-
-    componentDidUpdate() {
-        drawBarChart(this.props.data);
-    }
-
-    render() {
-        return (
-            <div id="charts"/>
-        );
-    }
-};
 
 
 export default Dashboard;
