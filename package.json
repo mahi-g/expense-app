@@ -5,6 +5,7 @@
   "dependencies": {
     "cra-template": "1.0.3",
     "d3": "^5.16.0",
+    "firebase": "^7.22.0",
     "highcharts": "^8.2.0",
     "highcharts-react-official": "^3.0.0",
     "react": "^16.13.1",

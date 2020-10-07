@@ -3,7 +3,6 @@ import React, {useState} from 'react';
 import LineChart from "./LineChart";
 import PieChart from "./PieChart";
 import Calculations from "./Calculations";
-import {drawBarChart} from "../charts/drawBarChart"
 import Forms from "./Forms";
 import RecentSales from "./RecentSales";
 
