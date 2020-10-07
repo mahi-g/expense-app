@@ -18,7 +18,7 @@ class TrackPackages extends React.Component {
         this.removeTracking = this.removeTracking.bind(this);
     }
 
-    removeTracking(e){
+    removeTracking(e) {
         let value = e.target.value;
         console.log(value);
         this.setState((state)=>(

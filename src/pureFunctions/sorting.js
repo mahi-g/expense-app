@@ -1,10 +1,5 @@
 
-const sortList = require('../Components/PieChart.js');
 module.exports = {
-    sortByDate(list){
-        console.log("Before"+list);
-        console.log(list.sort((a,b)=>new Date(a.date)-new Date(b.date)));
-    },
     getAllRevenue(list){
         let a = 0;
         let b = 0;
@@ -27,4 +22,8 @@ module.exports = {
         }
         return [0,0,0];
     }
+
 }
+
+
+
