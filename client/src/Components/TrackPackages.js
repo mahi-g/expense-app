@@ -29,42 +29,42 @@ class TrackPackages extends React.Component {
         this.readData(this.state.trackingIds);
     }
 
+    //handles tracking number from form input, adds it to database, updates state
+    //first checks if input value already exists in the state trackingId array
+    //then checks if trackingId is empty, sends post request to insert trackingId array into table, 
+    //else update existing array with a put request
     async addTracking(e){
         e.preventDefault();
         let target = e.target.track.value;
-        if(this.state.trackingIds.length===0){
-            await API.post(`/tracking/${user_id}/${target}`).then(
-                response => {
-                    //console.log("POST");
-                    console.log(response);
-                }  
-            );
+        if(this.state.trackingIds.indexOf(target) === -1) {
+            if(this.state.trackingId){
+                await API.post(`/tracking/${user_id}/${target}`).then(
+                    response => {
+                        console.log(response);
+                    }  
+                );
+            }
+            else {
+                await API.put(`/tracking/${user_id}/${target}`).then(
+                    response => {
+                        console.log("PUT");
+                        console.log(response);
+                    }  
+                );
+            }
+            //get request to retrieve updated table, updates states, and reruns readData function with updated value
+            //to fetch data
+            await API.get(`/tracking/${user_id}`)
+                .then(response => {
+                    console.log("Response"+response.data.data.tracking[0].tracking_num);
+                    this.setState({trackingIds: response.data.data.tracking[0].tracking_num});
+                });
+            this.readData(this.state.trackingIds);
         }
-        else{
-            await API.put(`/tracking/${user_id}/${target}`).then(
-                response => {
-                    console.log("PUT");
-                    console.log(response);
-                }  
-            );
-
+        else {
+            console.log("already exists");
         }
-      
-        await API.get(`/tracking/${user_id}`)
-            .then(response => {
-                console.log("Response"+response.data.data.tracking[0].tracking_num);
-               this.setState({trackingIds: response.data.data.tracking[0].tracking_num});
-        });
-        this.readData(this.state.trackingIds);
-
-        // let prev = this.state.trackingIds;
-        // prev.push(target);
-        // if(this.state.trackingIds.indexOf(target) !== -1){
-        //     this.setState({trackingIds:prev});
-        // }
-        // else {
-        //     this.setState(()=>({error:false}));
-        // }
+       
     }
 
     cleanData(text, trackingId){
