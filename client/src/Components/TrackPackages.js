@@ -1,8 +1,9 @@
 import React from 'react';
-
+import API from '../api/api';
 //9400128206335287201003 another id
 //9400128206335276889946
 //9400128206335287197597
+const user_id = 'mahi1234';
 
 class TrackPackages extends React.Component {
     constructor(props) {
@@ -18,28 +19,52 @@ class TrackPackages extends React.Component {
         this.removeTracking = this.removeTracking.bind(this);
     }
 
-    removeTracking(e){
-        let value = e.target.value;
-        console.log(value);
-        this.setState((state)=>(
-            {trackingIds: state.trackingIds.filter(d=>d!=value)}
-        ));
-        //remove this after componentdidupdate is fixed
-        this.readData([this.state.trackingIds]);
-        console.log(this.state.trackingIds);
+    
+    async removeTracking(e) {
+        const value = e.target.value;
+        await API.delete(`/tracking/${user_id}/${value}`).then( response => {
+                //console.log(response.data.tracking[0].tracking_num);
+                this.setState({trackingIds: response.data.tracking[0].tracking_num});
+            });
+        this.readData(this.state.trackingIds);
     }
 
-    addTracking(e) {
+    async addTracking(e){
         e.preventDefault();
         let target = e.target.track.value;
-        if(this.state.trackingIds.indexOf(target) === -1){
-            this.setState((state)=>({trackingIds:state.trackingIds.concat([target]), error:false}));
-            this.readData([target]);
+        if(this.state.trackingIds.length===0){
+            await API.post(`/tracking/${user_id}/${target}`).then(
+                response => {
+                    //console.log("POST");
+                    console.log(response);
+                }  
+            );
         }
-        else {
-            this.setState(()=>({error:false}));
-            console.log(this.state.trackingIds);
+        else{
+            await API.put(`/tracking/${user_id}/${target}`).then(
+                response => {
+                    console.log("PUT");
+                    console.log(response);
+                }  
+            );
+
         }
+      
+        await API.get(`/tracking/${user_id}`)
+            .then(response => {
+                console.log("Response"+response.data.data.tracking[0].tracking_num);
+               this.setState({trackingIds: response.data.data.tracking[0].tracking_num});
+        });
+        this.readData(this.state.trackingIds);
+
+        // let prev = this.state.trackingIds;
+        // prev.push(target);
+        // if(this.state.trackingIds.indexOf(target) !== -1){
+        //     this.setState({trackingIds:prev});
+        // }
+        // else {
+        //     this.setState(()=>({error:false}));
+        // }
     }
 
     cleanData(text, trackingId){
@@ -67,7 +92,6 @@ class TrackPackages extends React.Component {
     }
 
     async readData(tracking) {
-
         //reset delivery data to avoid duplication
         if(tracking.length>=1){
             this.setState(()=>({deliveryData: []}));
@@ -77,7 +101,7 @@ class TrackPackages extends React.Component {
         trackingAPICall(tracking)+ 
         "</TrackRequest>";
 
-        fetch(url)
+        await fetch(url)
             .then(response => response.text())
             .then(text => {
                 console.log(text);
@@ -91,13 +115,16 @@ class TrackPackages extends React.Component {
     }
 
     async componentDidMount() {
-        await this.readData(this.state.trackingIds);
+        await API.get(`/tracking/${user_id}`)
+            .then(response => {
+               this.setState({trackingIds: response.data.data.tracking[0].tracking_num});
+               console.log(response.data.data.tracking);
+            });
+        console.log(this.state);
+        this.readData(this.state.trackingIds);
+        
     }
- 
-    // async componentDidUpdate(prevProps, prevState){
-    //     prevState.deliveryData.forEach()
-   
-    // }
+
     render() {
         return (
             <div className="GridItem2">

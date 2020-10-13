@@ -9,7 +9,7 @@ import RecentSales from "./RecentSales";
 
 
 const Dashboard = (props) => {
-    const [selectedValue, setValue] = useState("current-month");
+    const [selectedDateValue, setValue] = useState("current-month");
     return (
         <div className="GridItem2">
             <h2>Revenue</h2>
@@ -21,21 +21,9 @@ const Dashboard = (props) => {
                     <option value="current-month">Current Month</option>
                     <option value="six-month">Past 6 Month</option>
                 </select>
-                <LineChart selectedValue={selectedValue} data={props.state.list} />
+                <LineChart selectedDateValue={selectedDateValue} data={props.state.list} />
             </div>
-
-            {
-            //<div className="Card">
-            //     <select id="Graph">
-            //         <option>Current Month</option>
-            //         <option>Past 6 Month</option>
-            //     </select>
-            //     <PieChart data={props.state.list}/>
-            //</div>
-            }
-
             <RecentSales list={props.state.list}/>
-
             <h2>Calculate Expense</h2>
             <div>
                 <div className="Card">
