@@ -6,6 +6,7 @@ import sortList from "../pureFunctions/sorting.js";
 
 
 const PieChart = (props) => {
+    console.log("In piechart");
     let data = sortList.getAllRevenue(props.data);
     console.log(data);
     // Create the chart

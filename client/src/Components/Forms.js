@@ -29,8 +29,6 @@ function Forms(props) {
                     <option value="Depop">Depop</option>
                     <option value="Ebay">Ebay</option>
                 </select>
-                <label>Add to expense</label>
-                <input type="checkbox"></input>
                 <button>Calculate</button>
             </form>
             
