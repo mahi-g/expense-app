@@ -1,4 +1,5 @@
 import React from 'react';
+import API from './api/api';
 import "./App.css";
 
 import {
@@ -9,6 +10,8 @@ import calculateFees from "./pureFunctions/calculateFees";
 import Routes from "./routes/routes.js";
 import Sidebar from "./Components/Sidebar.js";
 
+const userid = 'mahi1234';
+
 
 class App extends React.Component {
     constructor(props) {
@@ -16,83 +19,73 @@ class App extends React.Component {
         this.state = {
             list: [],
             balance: 0,
-            itemProfit: 0,
-            paypalFee: 0,
-            sellerFee: 0,
-            shippingFee: 0,
+            item_profit: 0,
+            paypal_fee: 0,
+            seller_fee: 0,
+            shipping: 0,
             netProfit: 0,
         };
         this.handleFormInputs = this.handleFormInputs.bind(this);
         this.handleDeleteOption = this.handleDeleteOption.bind(this);
+    }
+    
+    //Deletes selected expense, fetch updated expense list and updates state
+    async handleDeleteOption(e){
+        e.preventDefault();
+        const transaction_id = e.target.value;
+        await API.delete(`/expenses/${userid}/${transaction_id}`);
+        await API.get('/expenses/${userid}')
+            .then( response => {
+            this.setState({list:response.data.data.id});
+        });
+    }
 
-    }
-    handleDeleteOption(eventValue){
-        this.setState(state => ({list: state.list.filter((d,i)=> i!==eventValue)}));
-    }
-    handleFormInputs(event) {
+    //Calculates fees from user expense inputs
+    //Sends post request to add new expense to db
+    //Fetches updated list and updates state
+    async handleFormInputs(event) {
         event.preventDefault();
         const target = event.target;
         //console.log(event.target.date.value);
         const form = {};
         for(let i = 0; i < target.length; i++){
-                form[target.elements[i].getAttribute("name")] = target.elements[i].value;
+            form[target.elements[i].getAttribute("name")] = target.elements[i].value;
         }
-        const paypalFee = calculateFees.getPaypalFee(form.sold);
-        const sellerFee = calculateFees.getSellerFee(form.platform, form.sold)
-        const balance =  calculateFees.getBalance(form.sold,paypalFee,sellerFee,form.shipping,form.other);
-        const itemProfit = calculateFees.getProfit(balance, form.paid);
+        const paypal_fee = calculateFees.getPaypalFee(form.sold);
+        const seller_fee = calculateFees.getSellerFee(form.platform, form.sold)
+        const balance =  calculateFees.getBalance(form.sold,paypal_fee,seller_fee,form.shipping,form.other);
+        const item_profit = calculateFees.getProfit(balance, form.paid);
 
-        this.setState((previous) => {
-                return {
-                    list: previous.list.concat([{
-                        sold:form.sold,
-                        paid:form.paid,
-                        quantity: 1,
-                        shippingFee: form.shipping,
-                        other:form.other,
-                        paypalFee,
-                        sellerFee,
-                        itemProfit,
-                        platform:form.platform,
-                        date: form.date
-                    }]),
-                    balance,
-                    itemProfit,
-                    paypalFee,
-                    sellerFee,
-                    shippingFee: form.shipping,
-                    netProfit: Math.floor((previous.netProfit + itemProfit)*100) / 100
-                }
-            }
-        );
+        //post form inputs, and calculated fee to the database
+        await API.post(`/expenses/${userid}`, {
+            paid:form.paid,
+            sold:form.sold,
+            shipping: form.shipping,
+            other:form.other,
+            paypal_fee,
+            seller_fee,
+            item_profit,
+            platform:form.platform,
+            date: form.date
+        })
+
+        await API.get(`/expenses/${userid}`)
+            .then( response => {
+            this.setState({list:response.data.data.id});
+        });
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        const json = JSON.stringify(this.state);
-        localStorage.setItem('foooooooooo', json);
-        console.log(this.state.list);
-    }
-
-    componentDidMount() {
-        let data;
-        try {
-            data = localStorage.getItem('foooooooooo');
-            data = JSON.parse(data);
-            if (data.list) {
-                this.setState({
-                    list: data.list,
-                    balance: data.balance,
-                    itemProfit: data.itemProfit,
-                    paypalFee: data.paypalFee,
-                    sellerFee: data.sellerFee,
-                    shippingFee: data.shippingFee,
-                    netProfit: data.netProfit
-                });
-            }
-        } catch (error) {
-            data = error.message
+    async componentDidMount() {
+        try{
+            await API.get(`/expenses/${userid}`)
+                .then( response => {
+                    console.log(response.data);
+                    this.setState({list:response.data.data.id});
+            });
         }
-       
+        catch(err){
+            console.log(err);
+        }
     }
 
     render() {
@@ -104,12 +97,12 @@ class App extends React.Component {
                                 <Sidebar />
                                 <div className="Topbar">
                                     <button>New Expense</button>
-                                </div>
+                                </div>  
                                 <Routes 
                                     state={this.state} 
                                     handleFormInputs={this.handleFormInputs}
                                     handleDeleteOption = {this.handleDeleteOption}
-                                />
+                                />                     
                         </div>
                     </div>
                     <div className={"Footer"}>

@@ -1,30 +1,26 @@
-require('dotenv').config()
 const express = require("express");
+const cors = require('cors');
 const db = require('./db');
+require('dotenv').config()
+
 //create an instance of express
 const app = express();
 
-//mongo variable // middleware, read body
-
 //define env variables/ dbd configurations
 const port = process.env.PORT || 3005;
+
 app.listen(port, () => {
     console.log(`Server is up and listening on port ${port}`);
 });
 
-//middleware, can define multiple
-app.use((req,res,next)=>{
-    // res.status(404).json({
-    //     status: "fail",
-    // });
-    console.log("Middleware is running");
-    //drop a req/packet by not calling next
-    next();
-});
+//middlewares
+//enable cors for all routes
+app.use(cors());
+app.use(express.json());
 
 //READ all expenses
 app.get('/expenses', async (req, res) => {
-    const results = await db.query("select * from expenses");
+    const results = await db.query("SELECT * FROM expenses");
     res.status(200).json({
         status: "success",
         data: {
@@ -36,7 +32,7 @@ app.get('/expenses', async (req, res) => {
 //READ expense by user id
 app.get('/expenses/:id', async (req,res) => {
     try {
-        const results = await db.query(`select * from expenses where username = '${req.params.id}'`);
+        const results = await db.query(`SELECT * FROM expenses WHERE username = $1`, [req.params.id]);
         console.log(results.rows);
         res.status(200).json({
             status: "success",
@@ -52,32 +48,90 @@ app.get('/expenses/:id', async (req,res) => {
 });
 
 //WRITE an expense
-app.post('/expenses/add', async (req,res) => {
+app.post('/expenses/:id', async (req,res) => {
     try {
-        //const {username, paid, sold, shipping, date, platform, other} =
-        //const results = await db.query(`insert into expenses (username, paid, sold, shipping, date, platform, other) values ()`);
-        console.log(results.rows);
+        const {paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date} = req.body;
+        const results = await db.query(`INSERT INTO expenses (username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`, 
+            [req.params.id, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date]
+        );
         res.status(200).json({
             status: "success",
-            data: {
-                id: 2
-            }
+            data: results.row
         })
     }
     catch(err) {
         console.log(err);
     }
-    
 });
 
+//WRITE a tracking number
+app.post("/tracking/:user_id/:tracking_num", async (req,res) => {
+    try {
+        const result = await db.query(`INSERT INTO tracking (username, tracking_num) VALUES($1, ARRAY [$2]) RETURNING tracking_num;`, [req.params.user_id, req.params.tracking_num]);
+        res.status(200).json({
+            status: "success",
+            data: result.rows
+        });
+    } catch(err) {
+        console.error(err);
+    }
+});
+
+//UPDATE existing tracking numbers
+app.put("/tracking/:user_id/:tracking_num", async (req,res) => {
+    try {
+        console.log(req.params.tracking_num, req.params.user_id);
+        const tracking_num = `\{${req.params.tracking_num}\}`;
+        const result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num ;`, [tracking_num, req.params.user_id]);
+        res.status(200).json({
+            status: "success",
+            data: result.rows
+        });
+    } catch(err) {
+        console.error(err);
+    }
+});
+
+
 //DELETE an expense
-app.delete('/expenses/:id', (req,res) => {
-    console.log(req.params.id);
+app.delete('/expenses/:user_id/:transaction_id', async (req,res) => {
+    console.log(req.params.transaction_id);
+    const result = await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.params.user_id]);
     res.status(200).json({
         status: "success",
         data: {
-            id: req.params.id
+            id: req.params.transaction_id
         }
     })
 });
 
+//DELETE a tracking number
+app.delete('/tracking/:user_id/:tracking_num', async (req,res) => {
+    console.log(req.params.tracking_num);
+    const results = await db.query('UPDATE tracking SET tracking_num = array_remove(tracking_num, $1) WHERE username = $2 RETURNING tracking_num;', [req.params.tracking_num, req.params.user_id]);
+    res.status(200).json({
+        status: "success",
+        tracking: results.rows
+    })
+});
+
+//READ tracking number for a specific user
+app.get('/tracking/:user_id', async (req, res) =>{
+    const results = await db.query('SELECT tracking_num FROM tracking WHERE username=$1;', [req.params.user_id]);
+    res.status(200).json({
+        status: "success",
+        data: {
+            tracking: results.rows
+        }
+        
+    });
+});
+
+// app.update("/users/:id", async(req, res) =>{
+//     try{
+//         const result = db.query(``);
+//     } catch(err){
+
+//     }
+// });

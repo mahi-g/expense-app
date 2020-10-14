@@ -15,7 +15,7 @@ const LineChart = (props) => {
     const endYear = currDate.getFullYear();
     let title = "Current Month";
 
-    if(props.selectedValue === "six-month"){
+    if(props.selectedDateValue === "six-month"){
         title = "Six Months";
         let startMonth;
         let startYear;
@@ -213,7 +213,6 @@ const getNumberOfSales = (expenses, startMonth, startYear) => {
     expenses.forEach((expense) => {
         month = parseInt(new Date(expense.date).getMonth()+1);
         year = new Date(expense.date).getFullYear();
-        console.log("Month year now: ",month,year);
         numSalesObj[month+"-"+year] += 1 || 0;
     });
     return numSalesObj;

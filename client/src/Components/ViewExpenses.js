@@ -2,32 +2,21 @@ import React from 'react';
 
 
 //All strings that will be changed sparingly/not at all should be established beforehand..
-const resultTableHeaders = ["Sold", "Paid", "Quantity", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
+const resultTableHeaders = ["Sold", "Paid", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
 
-class ViewExpenses extends React.Component {
-    constructor(props){
-        super(props);
-        this.handleDelete = this.handleDelete.bind(this);
-    }
-    handleDelete(e){
-        e.preventDefault();
-        this.props.handleDeleteOption(parseInt(e.target.value));
-    }
-    render(){
-        return(
+const ViewExpenses = (props) => {
+    return(
             <div className="GridItem5">
-                {this.props.expenseList.length === 0 && (<p>Add an expense to get started</p>)}
+                {props.expenseList.length === 0 && (<p>Add an expense to get started</p>)}
                 <table className="TableS Card">
-                    <ItemTableHeaders headers={resultTableHeaders} listCount={this.props.expenseList.length}/>
+                    <ItemTableHeaders headers={resultTableHeaders} listCount={props.expenseList.length}/>
                     <ItemTableContents 
-                        list={this.props.expenseList}
-                        handleDelete={this.handleDelete}
+                        list={props.expenseList}
+                        handleDeleteOption={props.handleDeleteOption}
                     />
                 </table>
             </div>
         );
-    }
-
 }
 
 function ItemTableHeaders(props) {
@@ -48,17 +37,23 @@ function ItemTableHeaders(props) {
 }
 
 function ItemTableContents(props) {
+    let transaction_id;
     const rows = props.list.map((expense, index) => {
         let tableData = [];
         for (const [key, value] of Object.entries(expense)) {
-            tableData.push(
-                <td>{value}</td>
-            ) 
+            if(key !== 'username' && key !== 'transaction_id'){
+                tableData.push(
+                    <td>{value}</td>
+                )
+            }
+            else if(key==='transaction_id') {
+                transaction_id = value;
+            }            
         }
         return (
-            <tr key={index}>
+            <tr key={transaction_id}>
                 {tableData}
-                <td><button value={index} onClick={props.handleDelete}>x</button></td>
+                <td><button value={transaction_id} onClick={props.handleDeleteOption}>x</button></td>
             </tr>
         )
     });
