@@ -7,7 +7,10 @@ require('dotenv').config();
 const app = express();
 
 //define env variables/ dbd configurations
-const accessTokenSecret = process.env.accessTokenSecret;
+const accessTokenSecret = process.env.ACCESSTOKENSECRET;
+const refreshTokenSecret = process.env.REFRESHTOKENSECRET;
+const refreshTokens = [];
+
 const port = process.env.PORT || 3005;
 
 app.listen(port, () => {
@@ -20,15 +23,24 @@ app.listen(port, () => {
 app.use(cors());
 app.use(express.json());
 
+
+//Middleware that gets the authorization value from the header
+//If authHeader is defined, then the token is retrieved using split
+//[0] is Bearer and [1] is the access token
+//Access token is verified
+//If error, sends a 403, else verifiedJWT info is attached to req header
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-        jwt.verify(token, accessTokenSecret, (err, user) => {
+        jwt.verify(token, accessTokenSecret, (err, verifiedJWT) => {
             if (err) {
+                console.log("Error in verification");
                 return res.sendStatus(403);
             }
-            req.user = user;
+            //contains username, iat, exp
+            console.log("No error");
+            req.user = verifiedJWT;
             next();
         });
     } else {
@@ -37,22 +49,48 @@ const authenticateJWT = (req, res, next) => {
 };
 
 
-
-app.post('/login', async (req, res) => {
+//Generate access tokens and refresh tokens during login
+app.post('/api/login', async (req, res) => {
     const {username, password} = req.body;
-    const user = await db.query("SELECT password FROM users WHERE username = $1 AND password=$2", [username,password]);
+    const user = await db.query("SELECT * FROM users WHERE username = $1 AND password=$2", [username,password]);
     console.log(user.rows);
     if(user.rows.length !== 0 || user.row !== undefined){
-        const accessToken = jwt.sign({username, password}, accessTokenSecret, { expiresIn: '1h' });
-        res.json({accessToken});
+        const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1h' });
+        const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '3m' });
+        refreshTokens.push(refreshToken);
+        console.log(refreshTokens);
+        res.json({accessToken, refreshToken});
     } else {
         res.send("Username or password incorrect");
     }
 });
 
+//Generate new access tokens using refresh tokens 
+app.post('/api/token', (req, res) => {
+    const {token} = req.body;
+    if(!token){
+        return res.sendStatus(401);
+    }
+    if(!refreshTokens.includes(token)){
+        return res.sendStatus(403);
+    }
+    jwt.verify(token, refreshTokenSecret, (err, user) => {
+        if(err){ return res.sendStatus(401);}
+        const accessToken = jwt.sign(user, accessTokenSecret, { expiresIn: '1h' });
+        res.json({accessToken});        
+    })
+});
+
+app.post('/api/logout', (req, res) => {
+    const {token} = req.body;
+    refreshTokens = refreshTokens.filter(t => t != token);
+    res.send("Logout successful");
+})
+
 //READ all expenses
-app.get('/expenses', authenticateJWT, async (req, res) => {
-    const results = await db.query("SELECT * WHERE username = $1", [req.user]);
+app.get('/api/expenses', authenticateJWT, async (req, res) => {
+    const results = await db.query("SELECT * FROM expenses WHERE username = $1", [req.user.username]);
+    console.log(req.user);
     res.status(200).json({
         status: "success",
         data: {
@@ -61,30 +99,30 @@ app.get('/expenses', authenticateJWT, async (req, res) => {
     });
 });
 
-//READ expense by user id
-app.get('/expenses/:id', authenticateJWT, async (req,res) => {
-    try {
-        const results = await db.query(`SELECT * FROM expenses WHERE username = $1`, [req.params.id]);
-        console.log(results.rows);
-        res.status(200).json({
-            status: "success",
-            data: {
-                id: results.rows
-            }
-        })
-    }
-    catch(err) {
-        console.log(err);
-    }
-});
+// //READ expense by user id
+// app.get('/expenses/:id', authenticateJWT, async (req,res) => {
+//     try {
+//         const results = await db.query(`SELECT * FROM expenses WHERE username = $1`, [req.params.id]);
+//         console.log(results.rows);
+//         res.status(200).json({
+//             status: "success",
+//             data: {
+//                 id: results.rows
+//             }
+//         })
+//     }
+//     catch(err) {
+//         console.log(err);
+//     }
+// });
 
 //WRITE an expense
-app.post('/expenses', async (req,res) => {
+app.post('/api/expenses', authenticateJWT, async (req,res) => {
     try {
         const {paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date} = req.body;
         const results = await db.query(`INSERT INTO expenses (username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`, 
-            [req.user, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date]
+            [req.user.username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date]
         );
         res.status(200).json({
             status: "success",
@@ -97,9 +135,9 @@ app.post('/expenses', async (req,res) => {
 });
 
 //WRITE a tracking number
-app.post("/tracking/:user_id/:tracking_num", async (req,res) => {
+app.post("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
     try {
-        const result = await db.query(`INSERT INTO tracking (username, tracking_num) VALUES($1, ARRAY [$2]) RETURNING tracking_num;`, [req.params.user_id, req.params.tracking_num]);
+        const result = await db.query(`INSERT INTO tracking (username, tracking_num) VALUES($1, ARRAY [$2]) RETURNING tracking_num;`, [req.user.username, req.params.tracking_num]);
         res.status(200).json({
             status: "success",
             data: result.rows
@@ -110,11 +148,11 @@ app.post("/tracking/:user_id/:tracking_num", async (req,res) => {
 });
 
 //UPDATE existing tracking numbers
-app.put("/tracking/:user_id/:tracking_num", async (req,res) => {
+app.put("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
     try {
-        console.log(req.params.tracking_num, req.params.user_id);
+        console.log(req.params.tracking_num);
         const tracking_num = `\{${req.params.tracking_num}\}`;
-        const result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num ;`, [tracking_num, req.params.user_id]);
+        const result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num ;`, [tracking_num, req.user.username]);
         res.status(200).json({
             status: "success",
             data: result.rows
@@ -124,11 +162,11 @@ app.put("/tracking/:user_id/:tracking_num", async (req,res) => {
     }
 });
 
-
 //DELETE an expense
-app.delete('/expenses/:user_id/:transaction_id', async (req,res) => {
-    console.log(req.params.transaction_id);
-    const result = await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.params.user_id]);
+app.delete('/api/expenses/:transaction_id', authenticateJWT, async (req,res) => {
+    //console.log(req.params.transaction_id);
+    const result = await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.user.username]);
+    //console.log(result);
     res.status(200).json({
         status: "success",
         data: {
@@ -138,9 +176,9 @@ app.delete('/expenses/:user_id/:transaction_id', async (req,res) => {
 });
 
 //DELETE a tracking number
-app.delete('/tracking/:user_id/:tracking_num', async (req,res) => {
+app.delete('/api/tracking/:tracking_num', authenticateJWT, async (req,res) => {
     console.log(req.params.tracking_num);
-    const results = await db.query('UPDATE tracking SET tracking_num = array_remove(tracking_num, $1) WHERE username = $2 RETURNING tracking_num;', [req.params.tracking_num, req.params.user_id]);
+    const results = await db.query('UPDATE tracking SET tracking_num = array_remove(tracking_num, $1) WHERE username = $2 RETURNING tracking_num;', [req.params.tracking_num, req.user.username]);
     res.status(200).json({
         status: "success",
         tracking: results.rows
@@ -148,8 +186,8 @@ app.delete('/tracking/:user_id/:tracking_num', async (req,res) => {
 });
 
 //READ tracking number for a specific user
-app.get('/tracking/:user_id', async (req, res) =>{
-    const results = await db.query('SELECT tracking_num FROM tracking WHERE username=$1;', [req.params.user_id]);
+app.get('/api/tracking', authenticateJWT, async (req, res) =>{
+    const results = await db.query('SELECT tracking_num FROM tracking WHERE username=$1;', [req.user.username]);
     res.status(200).json({
         status: "success",
         data: {
