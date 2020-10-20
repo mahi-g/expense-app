@@ -1,10 +1,8 @@
 import React, {useState} from 'react';
 
 import LineChart from "./LineChart";
+import Calculator from "./Calculator";
 import PieChart from "./PieChart";
-import Calculations from "./Calculations";
-import {drawBarChart} from "../charts/drawBarChart"
-import Forms from "./Forms";
 import RecentSales from "./RecentSales";
 
 
@@ -25,17 +23,12 @@ const Dashboard = (props) => {
             </div>
             <RecentSales list={props.state.list}/>
             <h2>Calculate Expense</h2>
-            <div>
-                <div className="Card">
-                    <Forms handleFormInputs={props.handleFormInputs}/>
-                </div>
-                <div className="Card View">
-                    <Calculations data={props.state}/>
-                </div>
-            </div>
+            <Calculator
+                handleFormInputs = {props.handleFormInputs}
+                state = {props.state}
+            />
         </div>
     );
-
 };
 
 
