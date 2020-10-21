@@ -1,7 +1,7 @@
 import React from 'react';
 import API from './api/api';
 import "./App.css";
-
+import {userInfoContext} from 'userInfoContext';
 import {
     BrowserRouter as Router,
 } from 'react-router-dom';
@@ -9,8 +9,15 @@ import {
 import calculateFees from "./pureFunctions/calculateFees";
 import Routes from "./routes/routes.js";
 import Sidebar from "./Components/Sidebar.js";
+import { userInfoContextProvider } from './userInfoContext';
 
-const userid = 'mahi1234';
+let tokens;
+let userid;
+const config = {
+    headers:{
+        Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1haGkxMjM0IiwiaWF0IjoxNjAzMTY3MTQ4LCJleHAiOjE2MDMxNzA3NDh9.Yr8G-CcVmMPzQDR0wENzdgbn8eHa1pXBc4iqzqujzCM"
+    }
+}
 
 
 class App extends React.Component {
@@ -27,14 +34,17 @@ class App extends React.Component {
         };
         this.handleFormInputs = this.handleFormInputs.bind(this);
         this.handleDeleteOption = this.handleDeleteOption.bind(this);
+        this.handleLogin = this.handleLogin.bind(this);
     }
+    static contextType = userInfoContext;
+
     
     //Deletes selected expense, fetch updated expense list and updates state
     async handleDeleteOption(e){
         e.preventDefault();
         const transaction_id = e.target.value;
-        await API.delete(`/expenses/${userid}/${transaction_id}`);
-        await API.get('/expenses/${userid}')
+        await API.delete(`/expenses/${transaction_id}`, config);
+        await API.get('/expenses', config)
             .then( response => {
             this.setState({list:response.data.data.id});
         });
@@ -57,7 +67,8 @@ class App extends React.Component {
         const item_profit = calculateFees.getProfit(balance, form.paid);
 
         //post form inputs, and calculated fee to the database
-        await API.post(`/expenses/${userid}`, {
+        await API.post(`/expenses`, {
+            headers: config.headers,
             paid:form.paid,
             sold:form.sold,
             shipping: form.shipping,
@@ -69,15 +80,32 @@ class App extends React.Component {
             date: form.date
         })
 
-        await API.get(`/expenses/${userid}`)
+        await API.get('/expenses', config)
             .then( response => {
             this.setState({list:response.data.data.id});
         });
     }
 
+    async handleLogin(e) {
+        const {currentUser, setUser} = this.context;
+        const {tokens, setTokens} = this.context;
+
+        e.preventDefault();
+        console.log(e.target.username.value);
+        await API.post('/login', {}, {auth: {username: e.target.username.value, password: e.target.password.value}})
+             .then(response => {
+                 setTokens(response.data);
+                 setUser(response.config.auth.username);
+                 console.log(currentUser, tokens);
+             });
+             
+
+        //console.log(tokens,userid);
+    }
+
     async componentDidMount() {
         try{
-            await API.get(`/expenses/${userid}`)
+            await API.get(`/expenses`, config)
                 .then( response => {
                     console.log(response.data);
                     this.setState({list:response.data.data.id});
@@ -97,12 +125,13 @@ class App extends React.Component {
                                 <Sidebar />
                                 <div className="Topbar">
                                     <button>New Expense</button>
-                                </div>  
-                                <Routes 
-                                    state={this.state} 
-                                    handleFormInputs={this.handleFormInputs}
-                                    handleDeleteOption = {this.handleDeleteOption}
-                                />                     
+                                </div> 
+                                    <Routes 
+                                        state={this.state} 
+                                        handleFormInputs={this.handleFormInputs}
+                                        handleDeleteOption = {this.handleDeleteOption}
+                                        handleLogin = {this.handleLogin}
+                                    /> 
                         </div>
                     </div>
                     <div className={"Footer"}>

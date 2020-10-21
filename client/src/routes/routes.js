@@ -23,9 +23,12 @@ const RequireAuth = ({children}) => {
 const Routes = (props) =>{
     return(
             <Switch>
-                <Route path="/login"><Login/></Route>
+                <Route path="/login">
+                    <Login handleLogin = {props.handleLogin}/>
+                </Route>
                 <Route path="/signup"><Signup/></Route>
-                <Route path="/home"><Calculator
+                <Route path="/home">
+                    <Calculator
                         handleFormInputs = {props.handleFormInputs}
                         state = {props.state}
                     />

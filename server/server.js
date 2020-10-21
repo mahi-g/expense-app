@@ -9,7 +9,7 @@ const app = express();
 //define env variables/ dbd configurations
 const accessTokenSecret = process.env.ACCESSTOKENSECRET;
 const refreshTokenSecret = process.env.REFRESHTOKENSECRET;
-const refreshTokens = [];
+let refreshTokens = [];
 
 const port = process.env.PORT || 3005;
 
@@ -49,21 +49,30 @@ const authenticateJWT = (req, res, next) => {
 };
 
 
-//Generate access tokens and refresh tokens during login
+//Generate access tokens and clerefresh tokens during login
 app.post('/api/login', async (req, res) => {
-    const {username, password} = req.body;
+    //get auth header from request, [0] is Basic and [1] contains the username and password encoded in base64
+    //decode the auth header which returns "username:password" in plaintext
+    //retrive username/password using split and array destructuring
+    const auth = req.headers.authorization.split(' ')[1];
+    const decode = Buffer.from(auth, 'base64').toString();
+    const [username, password] = decode.split(":");
+
     const user = await db.query("SELECT * FROM users WHERE username = $1 AND password=$2", [username,password]);
-    console.log(user.rows);
+    //console.log(user.rows);
+    
     if(user.rows.length !== 0 || user.row !== undefined){
         const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1h' });
         const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '3m' });
         refreshTokens.push(refreshToken);
-        console.log(refreshTokens);
-        res.json({accessToken, refreshToken});
+        //console.log(refreshTokens);
+        res.status(200).json({ accessToken, refreshToken }
+        );
     } else {
         res.send("Username or password incorrect");
     }
 });
+
 
 //Generate new access tokens using refresh tokens 
 app.post('/api/token', (req, res) => {
@@ -85,7 +94,7 @@ app.post('/api/logout', (req, res) => {
     const {token} = req.body;
     refreshTokens = refreshTokens.filter(t => t != token);
     res.send("Logout successful");
-})
+});
 
 //READ all expenses
 app.get('/api/expenses', authenticateJWT, async (req, res) => {
