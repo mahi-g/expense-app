@@ -1,7 +1,7 @@
 import React from 'react';
 import API from './api/api';
 import "./App.css";
-import {userInfoContext} from 'userInfoContext';
+import {userInfoContext} from './userInfoContext';
 import {
     BrowserRouter as Router,
 } from 'react-router-dom';
@@ -9,32 +9,23 @@ import {
 import calculateFees from "./pureFunctions/calculateFees";
 import Routes from "./routes/routes.js";
 import Sidebar from "./Components/Sidebar.js";
-import { userInfoContextProvider } from './userInfoContext';
 
-let tokens;
-let userid;
-const config = {
-    headers:{
-        Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1haGkxMjM0IiwiaWF0IjoxNjAzMTY3MTQ4LCJleHAiOjE2MDMxNzA3NDh9.Yr8G-CcVmMPzQDR0wENzdgbn8eHa1pXBc4iqzqujzCM"
-    }
-}
 
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            list: [],
             balance: 0,
             item_profit: 0,
             paypal_fee: 0,
             seller_fee: 0,
             shipping: 0,
             netProfit: 0,
+            isLoggedIn: false
         };
         this.handleFormInputs = this.handleFormInputs.bind(this);
         this.handleDeleteOption = this.handleDeleteOption.bind(this);
-        this.handleLogin = this.handleLogin.bind(this);
     }
     static contextType = userInfoContext;
 
@@ -42,12 +33,15 @@ class App extends React.Component {
     //Deletes selected expense, fetch updated expense list and updates state
     async handleDeleteOption(e){
         e.preventDefault();
+        const g = { authorization: "Bearer "+this.context.tokens.accessToken};
+
         const transaction_id = e.target.value;
-        await API.delete(`/expenses/${transaction_id}`, config);
-        await API.get('/expenses', config)
-            .then( response => {
-            this.setState({list:response.data.data.id});
-        });
+        await API.delete(`/expenses/${transaction_id}`, { headers:g });
+        await API.get('/expenses', {headers: g})
+                .then( response => {
+                console.log(response);
+                this.context.setExpense(response.data.expenses);
+            });
     }
 
     //Calculates fees from user expense inputs
@@ -67,8 +61,11 @@ class App extends React.Component {
         const item_profit = calculateFees.getProfit(balance, form.paid);
 
         //post form inputs, and calculated fee to the database
-        await API.post(`/expenses`, {
-            headers: config.headers,
+        console.log("HandlefprmInputs:");
+        console.log(this.context.tokens.accessToken);
+        const g = { authorization: "Bearer "+this.context.tokens.accessToken};
+        console.log(g);
+        await API.post('/expenses', {
             paid:form.paid,
             sold:form.sold,
             shipping: form.shipping,
@@ -78,42 +75,41 @@ class App extends React.Component {
             item_profit,
             platform:form.platform,
             date: form.date
-        })
+        },{headers:g});
 
-        await API.get('/expenses', config)
-            .then( response => {
-            this.setState({list:response.data.data.id});
+        await API.get('/expenses', {headers: g})
+        .then( response => {
+            console.log(response);
+            this.context.setExpense(response.data.expenses);
         });
     }
 
-    async handleLogin(e) {
-        const {currentUser, setUser} = this.context;
-        const {tokens, setTokens} = this.context;
+    // async componentDidMount() {
+    //     try{
+    //         console.log("In componentdidmount",this.context.currentUser);
 
-        e.preventDefault();
-        console.log(e.target.username.value);
-        await API.post('/login', {}, {auth: {username: e.target.username.value, password: e.target.password.value}})
-             .then(response => {
-                 setTokens(response.data);
-                 setUser(response.config.auth.username);
-                 console.log(currentUser, tokens);
-             });
-             
+    //         if(this.context.currentUser !== ""){
+    //             console.log("In IF",this.context.currentUser);
 
-        //console.log(tokens,userid);
+                
+    //             await API.get(`/expenses`, this.createHeader)
+    //                 .then( response => {
+    //                     console.log(response.data);
+    //                     this.setState({list:response.data.data.id});
+    //             });
+    //         }
+            
+    //     }
+    //     catch(err){
+    //         console.log(err);
+    //     }
+    // }
+
+    componentDidMount(){
+        console.log("APP JS Component Did Mount");
     }
-
-    async componentDidMount() {
-        try{
-            await API.get(`/expenses`, config)
-                .then( response => {
-                    console.log(response.data);
-                    this.setState({list:response.data.data.id});
-            });
-        }
-        catch(err){
-            console.log(err);
-        }
+    componentDidUpdate(){
+        console.log("APP JS Component Did Update");
     }
 
     render() {
@@ -130,7 +126,6 @@ class App extends React.Component {
                                         state={this.state} 
                                         handleFormInputs={this.handleFormInputs}
                                         handleDeleteOption = {this.handleDeleteOption}
-                                        handleLogin = {this.handleLogin}
                                     /> 
                         </div>
                     </div>

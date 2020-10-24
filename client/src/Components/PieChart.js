@@ -1,13 +1,16 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 import sortList from "../pureFunctions/sorting.js";
+import {userInfoContext} from '../userInfoContext';
 
 
 
-const PieChart = (props) => {
+const PieChart = () => {
+    const {expenseList} = useContext(userInfoContext);
+    console.log(expenseList);
     console.log("In piechart");
-    let data = sortList.getAllRevenue(props.data);
+    let data = sortList.getAllRevenue(expenseList);
     console.log(data);
     // Create the chart
     const options = {

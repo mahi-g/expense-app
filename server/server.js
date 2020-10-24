@@ -7,8 +7,8 @@ require('dotenv').config();
 const app = express();
 
 //define env variables/ dbd configurations
-const accessTokenSecret = process.env.ACCESSTOKENSECRET;
-const refreshTokenSecret = process.env.REFRESHTOKENSECRET;
+const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
 let refreshTokens = [];
 
 const port = process.env.PORT || 3005;
@@ -30,7 +30,7 @@ app.use(express.json());
 //Access token is verified
 //If error, sends a 403, else verifiedJWT info is attached to req header
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers["authorization"];
     if (authHeader) {
         const token = authHeader.split(' ')[1];
         jwt.verify(token, accessTokenSecret, (err, verifiedJWT) => {
@@ -51,21 +51,20 @@ const authenticateJWT = (req, res, next) => {
 
 //Generate access tokens and clerefresh tokens during login
 app.post('/api/login', async (req, res) => {
-    //get auth header from request, [0] is Basic and [1] contains the username and password encoded in base64
+    //get auth header from request, [0] is a string "Basic" and [1] contains the username and password encoded in base64
     //decode the auth header which returns "username:password" in plaintext
     //retrive username/password using split and array destructuring
     const auth = req.headers.authorization.split(' ')[1];
     const decode = Buffer.from(auth, 'base64').toString();
     const [username, password] = decode.split(":");
 
-    const user = await db.query("SELECT * FROM users WHERE username = $1 AND password=$2", [username,password]);
+    const user = await db.query("SELECT * FROM users WHERE username = $1 AND password=$2", [username, password]);
     //console.log(user.rows);
     
     if(user.rows.length !== 0 || user.row !== undefined){
         const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1h' });
         const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '3m' });
         refreshTokens.push(refreshToken);
-        //console.log(refreshTokens);
         res.status(200).json({ accessToken, refreshToken }
         );
     } else {
@@ -98,13 +97,13 @@ app.post('/api/logout', (req, res) => {
 
 //READ all expenses
 app.get('/api/expenses', authenticateJWT, async (req, res) => {
+    console.log("Post expense");
+
     const results = await db.query("SELECT * FROM expenses WHERE username = $1", [req.user.username]);
-    console.log(req.user);
+    console.log(results.rows);
     res.status(200).json({
         status: "success",
-        data: {
-            expenses: results.rows
-        }
+        expenses: results.rows
     });
 });
 
@@ -128,11 +127,13 @@ app.get('/api/expenses', authenticateJWT, async (req, res) => {
 //WRITE an expense
 app.post('/api/expenses', authenticateJWT, async (req,res) => {
     try {
+        console.log("Post expense");
         const {paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date} = req.body;
         const results = await db.query(`INSERT INTO expenses (username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`, 
             [req.user.username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date]
         );
+        console.log(results.row);
         res.status(200).json({
             status: "success",
             data: results.row
@@ -174,7 +175,7 @@ app.put("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
 //DELETE an expense
 app.delete('/api/expenses/:transaction_id', authenticateJWT, async (req,res) => {
     //console.log(req.params.transaction_id);
-    const result = await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.user.username]);
+    await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.user.username]);
     //console.log(result);
     res.status(200).json({
         status: "success",
@@ -199,9 +200,8 @@ app.get('/api/tracking', authenticateJWT, async (req, res) =>{
     const results = await db.query('SELECT tracking_num FROM tracking WHERE username=$1;', [req.user.username]);
     res.status(200).json({
         status: "success",
-        data: {
-            tracking: results.rows
-        }
+        tracking: results.rows
+        
         
     });
 });
