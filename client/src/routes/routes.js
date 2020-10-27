@@ -19,17 +19,23 @@ const RequireAuth = ({children}) => {
     console.log("Tokens",user.tokens);
     console.log("Expenses",user.expenseList);
 
-    if(user.currentUser==="") {
+    if(!user.isAuthenticated) {
         return <Redirect to={{pathname:"/login"}}/>
     }
     return children;
 }
 
+const privateRoute = () => {
+
+}
+
 const Routes = (props) =>{
+    const user = useContext(userInfoContext);
+
     return(
             <Switch>
                 <Route path="/login">
-                    <Login handleLogin = {props.handleLogin}/>
+                        <Login/>
                 </Route>
                 <Route path="/signup"><Signup/></Route>
                 <Route exact path="/">

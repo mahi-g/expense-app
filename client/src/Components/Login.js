@@ -1,10 +1,10 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 import {userInfoContext} from '../userInfoContext';
 import API from '../api/api';
 
-
 const Login = () => {
+    const [error, setError] =  useState(false);
     const {currentUser, tokens, setTokenValues, setUserValue, setExpense, setAuth} = useContext(userInfoContext);
     const history = useHistory();
 
@@ -19,15 +19,19 @@ const Login = () => {
                     setAuth(true);
                     history.push("/dashboard");
                  }
+             }).catch( e => {
+                 console.log("Error", e);
+                 if(e){
+                    setError(true);
+                 }
              }); 
-        
     }
     useEffect( () => {
         console.log("Login useEffect");
         if(currentUser!==""){
             const g = { authorization: "Bearer " + tokens.accessToken };
             (async () => {
-                await API.get('/expenses', {headers: g})
+                await API.get('/expenses', { headers: g })
                     .then( response => {
                     console.log(response);
                     setExpense(response.data.expenses);
@@ -39,6 +43,7 @@ const Login = () => {
     return (
         <div>
             <form onSubmit={handleLogin}>
+                { error && <p>incorrect username or password</p> }
                 <label>Username</label>
                 <input type="text" name="username" required/>
                 <label>Password</label>

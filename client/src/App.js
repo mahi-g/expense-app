@@ -1,14 +1,12 @@
 import React from 'react';
 import API from './api/api';
-import "./App.css";
-import {userInfoContext} from './userInfoContext';
-import {
-    BrowserRouter as Router,
-} from 'react-router-dom';
-
+import { userInfoContext } from './userInfoContext';
+import { BrowserRouter as Router } from 'react-router-dom';
 import calculateFees from "./pureFunctions/calculateFees";
+import Logout from "./Components/Logout";
 import Routes from "./routes/routes.js";
 import Sidebar from "./Components/Sidebar.js";
+import "./App.css";
 
 
 
@@ -47,13 +45,12 @@ class App extends React.Component {
     //Calculates fees from user expense inputs
     //Sends post request to add new expense to db
     //Fetches updated list and updates state
-    async handleFormInputs(event) {
-        event.preventDefault();
-        const target = event.target;
+    async handleFormInputs(e) {
+        e.preventDefault();
         //console.log(event.target.date.value);
         const form = {};
-        for(let i = 0; i < target.length; i++){
-            form[target.elements[i].getAttribute("name")] = target.elements[i].value;
+        for(let i = 0; i < e.target.length; i++){
+            form[e.target.elements[i].getAttribute("name")] = e.target.elements[i].value;
         }
         const paypal_fee = calculateFees.getPaypalFee(form.sold);
         const seller_fee = calculateFees.getSellerFee(form.platform, form.sold)
@@ -61,7 +58,6 @@ class App extends React.Component {
         const item_profit = calculateFees.getProfit(balance, form.paid);
 
         //post form inputs, and calculated fee to the database
-        console.log("HandlefprmInputs:");
         console.log(this.context.tokens.accessToken);
         const g = { authorization: "Bearer "+this.context.tokens.accessToken};
         console.log(g);
@@ -75,7 +71,7 @@ class App extends React.Component {
             item_profit,
             platform:form.platform,
             date: form.date
-        },{headers:g});
+        },{ headers:g });
 
         await API.get('/expenses', {headers: g})
         .then( response => {
@@ -84,6 +80,7 @@ class App extends React.Component {
         });
     }
 
+   
     // async componentDidMount() {
     //     try{
     //         console.log("In componentdidmount",this.context.currentUser);
@@ -120,7 +117,7 @@ class App extends React.Component {
                         <div className="GridContainer">
                                 <Sidebar />
                                 <div className="Topbar">
-                                    <button>New Expense</button>
+                                   { this.context.isAuthenticated && <Logout/> }
                                 </div> 
                                     <Routes 
                                         state={this.state} 

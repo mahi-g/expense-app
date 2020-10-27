@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require('cors');
 const db = require('./db');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 //create an instance of express
 const app = express();
@@ -55,23 +56,52 @@ app.post('/api/login', async (req, res) => {
     //decode the auth header which returns "username:password" in plaintext
     //retrive username/password using split and array destructuring
     const auth = req.headers.authorization.split(' ')[1];
-    const decode = Buffer.from(auth, 'base64').toString();
-    const [username, password] = decode.split(":");
+    const decodedFromBase64 = Buffer.from(auth, 'base64').toString();
+    const [username, password] = decodedFromBase64.split(":");
 
-    const user = await db.query("SELECT * FROM users WHERE username = $1 AND password=$2", [username, password]);
-    //console.log(user.rows);
-    
-    if(user.rows.length !== 0 || user.row !== undefined){
-        const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1h' });
-        const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '3m' });
-        refreshTokens.push(refreshToken);
-        res.status(200).json({ accessToken, refreshToken }
-        );
-    } else {
-        res.send("Username or password incorrect");
-    }
+    //retrieve hashed password from db, use bcrypt.compare to compare user entered password and db password
+    const user = await db.query("SELECT password FROM users WHERE username = $1", [username]);
+    //console.log(user.rows[0].password);
+    bcrypt.compare(password, user.rows[0].password, (err, result) => {
+        if(result){
+            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1h' });
+            const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '3m' });
+            refreshTokens.push(refreshToken);
+            res.status(200).json({ accessToken, refreshToken });
+        }
+        else{
+            res.status(401);
+            res.send("Username or password incorrect");
+        }
+    });
 });
 
+const checkUsernameAvailable = async (req, res, next) => {
+    const username = await db.query('SELECT username FROM users WHERE username = $1', [req.body.username]);
+    if(username.rows[0] !== undefined) { console.log("username exists"); return res.send(403); }
+    next(); 
+}
+
+const checkPasswordLength = (req, res, next) => {
+    if(req.body.password.length < 8) {
+        console.log("Password is less than 8 chars")
+        return res.sendStatus(401);
+    }
+    // const r = new RegExp("^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$");
+    // console.log(req.body.password.match(r));
+    // if(!r.test(req.body.password)) {
+    //     console.log("Password did not match");
+    //     return res.sendStatus(403);
+    // }
+    next(); 
+}
+
+app.post('/api/signup', checkUsernameAvailable, checkPasswordLength, async (req, res) => {
+    let hash = bcrypt.hashSync(req.body.password, 10);
+    const user = await db.query(`INSERT INTO users (username, password) VALUES ($1, $2)`, [req.body.username, hash]);
+    console.log(user);
+    res.sendStatus(200);
+});
 
 //Generate new access tokens using refresh tokens 
 app.post('/api/token', (req, res) => {
@@ -107,22 +137,6 @@ app.get('/api/expenses', authenticateJWT, async (req, res) => {
     });
 });
 
-// //READ expense by user id
-// app.get('/expenses/:id', authenticateJWT, async (req,res) => {
-//     try {
-//         const results = await db.query(`SELECT * FROM expenses WHERE username = $1`, [req.params.id]);
-//         console.log(results.rows);
-//         res.status(200).json({
-//             status: "success",
-//             data: {
-//                 id: results.rows
-//             }
-//         })
-//     }
-//     catch(err) {
-//         console.log(err);
-//     }
-// });
 
 //WRITE an expense
 app.post('/api/expenses', authenticateJWT, async (req,res) => {

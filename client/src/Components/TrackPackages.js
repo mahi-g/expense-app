@@ -60,12 +60,12 @@ class TrackPackages extends React.Component {
         e.preventDefault();
         const tracking_num = e.target.track.value;
         if(!this.state.trackingIds.includes(tracking_num)) {
-            //check if trackingId undefined or empty
-            if(this.state.trackingId){
-                await API.post(`/tracking/${tracking_num}`, {} ,this.config()).then(
+            //check if trackingIds undefined or empty
+            if(this.state.trackingIds.length === 0 || this.state.trackingIds.length === undefined ){
+                await API.post(`/tracking/${tracking_num}`, {} , this.config()).then(
                     response => {
                         console.log(response);
-                        this.setState({trackingIds:response.data[0].tracking_num});
+                        this.setState({trackingIds:response.data.data[0].tracking_num});
                     }  
                 );
             }
@@ -140,18 +140,15 @@ class TrackPackages extends React.Component {
     async componentDidMount() {
         console.log(this.context.tokens.accessToken);
         console.log("Tracking component did update");
-        await API.get(`/tracking`, { 
-            headers: 
-                {
-                    authorization: "Bearer "+this.context.tokens.accessToken
-                }
-        })
+        await API.get(`/tracking`, this.config())
             .then(response => {
-            console.log(response);
-               this.setState({trackingIds: response.data.tracking[0].tracking_num});
+                console.log(response);
+                response.data.tracking.length<1 ? this.setState({trackingIds: []}) : this.setState({trackingIds: response.data.tracking[0].tracking_num})
             });
         console.log(this.state);
-        this.readData(this.state.trackingIds);
+        if(this.state.trackingIds.length !== 0){
+            this.readData(this.state.trackingIds);
+        }
     }
 
     render() {
