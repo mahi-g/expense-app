@@ -1,11 +1,16 @@
 import React from 'react';
 import API from '../api/api';
-//9400128206335287201003 another id
+import {userInfoContext} from '../userInfoContext';
+ 
+//9400128206335287201003 
 //9400128206335276889946
 //9400128206335287197597
-const user_id = 'mahi1234';
+
+//ISSUE -> HANDLING INVALID TRACKING IDS
+//ISSUE -> GETTING AN ERROR MESSAGE FROM USPS API
 
 class TrackPackages extends React.Component {
+     
     constructor(props) {
         super(props);
         this.state = {
@@ -18,6 +23,16 @@ class TrackPackages extends React.Component {
         this.removeTracking = this.removeTracking.bind(this);
     }
 
+    static contextType = userInfoContext;
+
+
+     config(){ 
+         return ({ 
+            headers: 
+                {
+                    authorization: "Bearer "+this.context.tokens.accessToken
+                }
+        })};
     //Remove data by making a delete request
     //If only one tracking number exists in the array, then sets the trackingId and deliveryData in the state to empty arrays
     //Else, deletes the array, updates the state with the response data, and recalls the readData() function to fetch data from 
@@ -25,12 +40,11 @@ class TrackPackages extends React.Component {
     async removeTracking(e) {
         const value = e.target.value;
         if(this.state.trackingIds.length===1) {
-            await API.delete(`/tracking/${user_id}/${value}`);
+            await API.delete(`tracking/${value}`, this.config());
             this.setState({trackingIds: [], deliveryData: []});
-            
         }
         else {
-            await API.delete(`/tracking/${user_id}/${value}`).then( response => {
+            await API.delete(`tracking/${value}`, this.config()).then( response => {
                 this.setState({trackingIds: response.data.tracking[0].tracking_num});
             });
             this.readData(this.state.trackingIds);
@@ -44,11 +58,11 @@ class TrackPackages extends React.Component {
     //updates trackingIds array in states
     async addTracking(e){
         e.preventDefault();
-        let target = e.target.track.value;
-        if(!this.state.trackingIds.includes(target)) {
-            //check if trackingId undefined or empty
-            if(this.state.trackingId){
-                await API.post(`/tracking/${user_id}/${target}`).then(
+        const tracking_num = e.target.track.value;
+        if(!this.state.trackingIds.includes(tracking_num)) {
+            //check if trackingIds undefined or empty
+            if(this.state.trackingIds.length === 0 || this.state.trackingIds.length === undefined ){
+                await API.post(`/tracking/${tracking_num}`, {} , this.config()).then(
                     response => {
                         console.log(response);
                         this.setState({trackingIds:response.data.data[0].tracking_num});
@@ -56,7 +70,7 @@ class TrackPackages extends React.Component {
                 );
             }
             else {
-                await API.put(`/tracking/${user_id}/${target}`).then(
+                await API.put(`/tracking/${tracking_num}`, {}, this.config()).then(
                     response => {
                         console.log("PUT");
                         console.log(response);
@@ -124,13 +138,17 @@ class TrackPackages extends React.Component {
     }
 
     async componentDidMount() {
-        await API.get(`/tracking/${user_id}`)
+        console.log(this.context.tokens.accessToken);
+        console.log("Tracking component did update");
+        await API.get(`/tracking`, this.config())
             .then(response => {
-               this.setState({trackingIds: response.data.data.tracking[0].tracking_num});
-               console.log(response.data.data.tracking);
+                console.log(response);
+                response.data.tracking.length<1 ? this.setState({trackingIds: []}) : this.setState({trackingIds: response.data.tracking[0].tracking_num})
             });
         console.log(this.state);
-        this.readData(this.state.trackingIds);
+        if(this.state.trackingIds.length !== 0){
+            this.readData(this.state.trackingIds);
+        }
     }
 
     render() {

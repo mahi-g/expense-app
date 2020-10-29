@@ -1,12 +1,16 @@
-import React from "react";
+import React, {useContext} from "react";
 import "../App.css";
+import {userInfoContext} from '../userInfoContext';
+
 
 const RecentSales = (props) => {
-    const sales = props.list.map(
+    const {expenseList} = useContext(userInfoContext);
+
+    const sales = expenseList.map(
         (d,i) => {
             let fees = parseInt(d.shipping)+parseInt(d.paypal_fee)+parseInt(d.seller_fee);
             //console.log(parseInt(d.shipping)+parseInt(d.paypal_fee)+parseInt(d.seller_fee));
-            if(i >= props.list.length-5){
+            if(i >= expenseList.length-5){
                 return (
                     <div className="Expense" key={i}>
                         <p>Sold at ${d.sold}</p>

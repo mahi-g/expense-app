@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
+import {UserInfoContextProvider} from './userInfoContext';
 
 import * as serviceWorker from './serviceWorker';
 import './index.css';
@@ -8,7 +9,9 @@ import './index.css';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <UserInfoContextProvider>
+      <App />
+    </UserInfoContextProvider>
   </React.StrictMode>,
   document.getElementById('app')
 );

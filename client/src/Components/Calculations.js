@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import "../App.css"
-
+import {userInfoContext} from '../userInfoContext';
 const Calculations = (props) => {
+    const {tokens, setTokenValues, setUserValue} = useContext(userInfoContext);
+
     return (
         <div className="Cardstyle">
             <p>PayPal Fee: <b>${props.data.paypal_fee}</b></p>
