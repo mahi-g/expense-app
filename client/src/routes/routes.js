@@ -13,7 +13,7 @@ import TrackPackages from "../Components/TrackPackages";
 import {userInfoContext} from '../userInfoContext';
 import ViewExpenses from "../Components/ViewExpenses";
 
-const RequireAuth = ({children}) => {
+const PrivateRoutes = ({children}) => {
     const user = useContext(userInfoContext);
     console.log("currentUser",user.currentUser);
     console.log("Tokens",user.tokens);
@@ -24,27 +24,30 @@ const RequireAuth = ({children}) => {
     }
     return children;
 }
-
-const privateRoute = () => {
-
+const PublicRoutes = ({children}) => {
+    const user = useContext(userInfoContext);
+    if(user.isAuthenticated) {
+        return <Redirect to={{pathname:"/dashboard"}}/>
+    }
+    return children;
 }
+
 
 const Routes = (props) =>{
     const user = useContext(userInfoContext);
 
     return(
             <Switch>
-                <Route path="/login">
-                        <Login/>
-                </Route>
-                <Route path="/signup"><Signup/></Route>
-                <Route exact path="/">
-                    <Calculator
-                        handleFormInputs = {props.handleFormInputs}
-                        state = {props.state}
-                    />
-                </Route>
-                <RequireAuth>
+                
+                    <Route path="/login"><Login/></Route>
+                    <Route path="/signup"><Signup/></Route>
+                    <Route exact path="/">
+                        <Calculator
+                            handleFormInputs = {props.handleFormInputs}
+                            state = {props.state}
+                        />
+                    </Route>
+                <PrivateRoutes>
                     <Route path="/dashboard">
                         <Dashboard 
                             state={props.state}
@@ -57,7 +60,7 @@ const Routes = (props) =>{
                             handleDeleteOption = {props.handleDeleteOption}
                         />
                     </Route>
-                </RequireAuth>
+                </PrivateRoutes>
 
                 
             </Switch>    

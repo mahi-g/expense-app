@@ -1,5 +1,5 @@
 import React from 'react';
-import API from '../api/api';
+import axiosApiInstance from '../api/axios';
 import {userInfoContext} from '../userInfoContext';
  
 //9400128206335287201003 
@@ -7,7 +7,7 @@ import {userInfoContext} from '../userInfoContext';
 //9400128206335287197597
 
 //ISSUE -> HANDLING INVALID TRACKING IDS
-//ISSUE -> GETTING AN ERROR MESSAGE FROM USPS API
+//ISSUE -> GETTING AN ERROR MESSAGE FROM USPS axiosApiInstance
 
 class TrackPackages extends React.Component {
      
@@ -25,14 +25,6 @@ class TrackPackages extends React.Component {
 
     static contextType = userInfoContext;
 
-
-     config(){ 
-         return ({ 
-            headers: 
-                {
-                    authorization: "Bearer "+this.context.tokens.accessToken
-                }
-        })};
     //Remove data by making a delete request
     //If only one tracking number exists in the array, then sets the trackingId and deliveryData in the state to empty arrays
     //Else, deletes the array, updates the state with the response data, and recalls the readData() function to fetch data from 
@@ -40,13 +32,13 @@ class TrackPackages extends React.Component {
     async removeTracking(e) {
         const value = e.target.value;
         if(this.state.trackingIds.length===1) {
-            await API.delete(`tracking/${value}`, this.config());
+            await axiosApiInstance.delete(`tracking/${value}`).catch(error=> console.log(error));
             this.setState({trackingIds: [], deliveryData: []});
         }
         else {
-            await API.delete(`tracking/${value}`, this.config()).then( response => {
+            await axiosApiInstance.delete(`tracking/${value}`).then( response => {
                 this.setState({trackingIds: response.data.tracking[0].tracking_num});
-            });
+            }).catch(error=> console.log(error));
             this.readData(this.state.trackingIds);
         }
     }
@@ -60,23 +52,25 @@ class TrackPackages extends React.Component {
         e.preventDefault();
         const tracking_num = e.target.track.value;
         if(!this.state.trackingIds.includes(tracking_num)) {
-            //check if trackingIds undefined or empty
-            if(this.state.trackingIds.length === 0 || this.state.trackingIds.length === undefined ){
-                await API.post(`/tracking/${tracking_num}`, {} , this.config()).then(
+            //check if trackingIds undefined or empty, 
+            //if so, send a post request that adds the username and tracking numbers in the db tracking table
+            if(this.state.trackingIds.length === 0 || this.state.trackingIds === undefined ){
+                await axiosApiInstance.post(`/tracking/${tracking_num}`).then(
                     response => {
                         console.log(response);
                         this.setState({trackingIds:response.data.data[0].tracking_num});
                     }  
-                );
+                ).catch(error=> console.log(error));
             }
+            //Update the existing tracking table in the db for the user if there are already trackingIds in their account
             else {
-                await API.put(`/tracking/${tracking_num}`, {}, this.config()).then(
+                await axiosApiInstance.put(`/tracking/${tracking_num}`).then(
                     response => {
                         console.log("PUT");
                         console.log(response);
                         this.setState({trackingIds:response.data.data[0].tracking_num});
                     }  
-                );
+                ).catch(error=> console.log(error));
             }
             this.readData(this.state.trackingIds);
         }
@@ -115,10 +109,10 @@ class TrackPackages extends React.Component {
         //reset delivery data to avoid duplication
         this.setState(()=>({deliveryData: []}));
 
-        //Create api url with userID and tracking numbers
-        const url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML="+
+        //Create axiosApiInstance url with userID and tracking numbers
+        const url = "https://secure.shippingaxioss.com/Shippingaxios.dll?axiosApiInstance=TrackV2&XML="+
         "<TrackRequest USERID=\"959NA0006949\">"+
-        trackingAPICall(tracking)+ 
+        trackingaxiosCall(tracking)+ 
         "</TrackRequest>";
 
         await fetch(url)
@@ -140,11 +134,16 @@ class TrackPackages extends React.Component {
     async componentDidMount() {
         console.log(this.context.tokens.accessToken);
         console.log("Tracking component did update");
-        await API.get(`/tracking`, this.config())
-            .then(response => {
-                console.log(response);
-                response.data.tracking.length<1 ? this.setState({trackingIds: []}) : this.setState({trackingIds: response.data.tracking[0].tracking_num})
-            });
+        // await axiosApiInstance.get(`/tracking`)
+        //     .then(response => {
+        //         console.log(response);
+        //         response.data.tracking.length<1 ? this.setState({trackingIds: []}) : this.setState({trackingIds: response.data.tracking[0].tracking_num})
+        //     });
+        await axiosApiInstance.post('/refresh-token', {}, {withCredentials: true}).then(
+            res => {
+                console.log(res);
+            }
+        );
         console.log(this.state);
         if(this.state.trackingIds.length !== 0){
             this.readData(this.state.trackingIds);
@@ -189,7 +188,7 @@ const PrintData = (props) => {
     )
 }
 
-function trackingAPICall(trackingNums){
+function trackingaxiosCall(trackingNums){
     let trackID = "";
     trackingNums.map((id) => trackID+="<TrackID ID=\"" + id + "\"/>");
     return trackID;

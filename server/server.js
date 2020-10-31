@@ -1,8 +1,9 @@
 const express = require("express");
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const db = require('./db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 require('dotenv').config();
 //create an instance of express
 const app = express();
@@ -21,8 +22,14 @@ app.listen(port, () => {
 
 //middlewares
 //enable cors for all routes
-app.use(cors());
 app.use(express.json());
+
+const options = {
+    credentials: true, 
+    origin: 'http://localhost:3000',
+}
+app.use(cors(options));
+app.use(cookieParser());
 
 
 //Middleware that gets the authorization value from the header
@@ -32,6 +39,7 @@ app.use(express.json());
 //If error, sends a 403, else verifiedJWT info is attached to req header
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers["authorization"];
+    console.log(authHeader);
     if (authHeader) {
         const token = authHeader.split(' ')[1];
         jwt.verify(token, accessTokenSecret, (err, verifiedJWT) => {
@@ -58,18 +66,25 @@ app.post('/api/login', async (req, res) => {
     const auth = req.headers.authorization.split(' ')[1];
     const decodedFromBase64 = Buffer.from(auth, 'base64').toString();
     const [username, password] = decodedFromBase64.split(":");
-
-    //retrieve hashed password from db, use bcrypt.compare to compare user entered password and db password
+    
+    //retrieve hashed password from db, use bcrypt.compare to compare user entered password and stored password
     const user = await db.query("SELECT password FROM users WHERE username = $1", [username]);
-    //console.log(user.rows[0].password);
+
     bcrypt.compare(password, user.rows[0].password, (err, result) => {
-        if(result){
-            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1h' });
-            const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '3m' });
+        if(result) {
+            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1m' });
+            const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '48h' });
             refreshTokens.push(refreshToken);
-            res.status(200).json({ accessToken, refreshToken });
+            res.cookie('refreshToken', refreshToken, {
+                sameSite: 'none',
+                expires: new Date(Date.now() + 172800000),
+                secure: false, // set to true if your using https
+                httpOnly: true,
+            });
+            console.log(refreshTokens);
+            res.status(200).json({ accessToken });
         }
-        else{
+        else {
             res.status(401);
             res.send("Username or password incorrect");
         }
@@ -78,7 +93,7 @@ app.post('/api/login', async (req, res) => {
 
 const checkUsernameAvailable = async (req, res, next) => {
     const username = await db.query('SELECT username FROM users WHERE username = $1', [req.body.username]);
-    if(username.rows[0] !== undefined) { console.log("username exists"); return res.send(403); }
+    if(username.rows[0] !== undefined) { console.log("username exists"); return res.sendStatus(403); }
     next(); 
 }
 
@@ -104,31 +119,32 @@ app.post('/api/signup', checkUsernameAvailable, checkPasswordLength, async (req,
 });
 
 //Generate new access tokens using refresh tokens 
-app.post('/api/token', (req, res) => {
-    const {token} = req.body;
-    if(!token){
+app.post('/api/refresh-token', (req, res) => {
+    console.log(req.headers);
+    console.log("refresh token");
+    const { refreshToken } = req.cookies;
+    console.log("cookies", refreshToken);
+    if(!refreshToken){
         return res.sendStatus(401);
     }
-    if(!refreshTokens.includes(token)){
+    if(!refreshTokens.includes(refreshToken)){
         return res.sendStatus(403);
     }
-    jwt.verify(token, refreshTokenSecret, (err, user) => {
+    jwt.verify(refreshToken, refreshTokenSecret, (err, user) => {
         if(err){ return res.sendStatus(401);}
-        const accessToken = jwt.sign(user, accessTokenSecret, { expiresIn: '1h' });
-        res.json({accessToken});        
+        const accessToken = jwt.sign(user, accessTokenSecret, { expiresIn: '1m' });
+        res.json({ accessToken });        
     })
 });
 
 app.post('/api/logout', (req, res) => {
-    const {token} = req.body;
+    const { token } = req.body;
     refreshTokens = refreshTokens.filter(t => t != token);
     res.send("Logout successful");
 });
 
 //READ all expenses
 app.get('/api/expenses', authenticateJWT, async (req, res) => {
-    console.log("Post expense");
-
     const results = await db.query("SELECT * FROM expenses WHERE username = $1", [req.user.username]);
     console.log(results.rows);
     res.status(200).json({
@@ -214,16 +230,7 @@ app.get('/api/tracking', authenticateJWT, async (req, res) =>{
     const results = await db.query('SELECT tracking_num FROM tracking WHERE username=$1;', [req.user.username]);
     res.status(200).json({
         status: "success",
-        tracking: results.rows
-        
-        
+        tracking: results.rows    
     });
 });
 
-// app.update("/users/:id", async(req, res) =>{
-//     try{
-//         const result = db.query(``);
-//     } catch(err){
-
-//     }
-// });

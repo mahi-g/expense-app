@@ -1,5 +1,5 @@
 import React from 'react';
-import API from './api/api';
+import axiosApiInstance from './api/axios';
 import { userInfoContext } from './userInfoContext';
 import { BrowserRouter as Router } from 'react-router-dom';
 import calculateFees from "./pureFunctions/calculateFees";
@@ -7,7 +7,6 @@ import Logout from "./Components/Logout";
 import Routes from "./routes/routes.js";
 import Sidebar from "./Components/Sidebar.js";
 import "./App.css";
-
 
 
 class App extends React.Component {
@@ -31,11 +30,10 @@ class App extends React.Component {
     //Deletes selected expense, fetch updated expense list and updates state
     async handleDeleteOption(e){
         e.preventDefault();
-        const g = { authorization: "Bearer "+this.context.tokens.accessToken};
 
         const transaction_id = e.target.value;
-        await API.delete(`/expenses/${transaction_id}`, { headers:g });
-        await API.get('/expenses', {headers: g})
+        await axiosApiInstance.delete(`/expenses/${transaction_id}`);
+        await axiosApiInstance.get('/expenses')
                 .then( response => {
                 console.log(response);
                 this.context.setExpense(response.data.expenses);
@@ -58,10 +56,7 @@ class App extends React.Component {
         const item_profit = calculateFees.getProfit(balance, form.paid);
 
         //post form inputs, and calculated fee to the database
-        console.log(this.context.tokens.accessToken);
-        const g = { authorization: "Bearer "+this.context.tokens.accessToken};
-        console.log(g);
-        await API.post('/expenses', {
+        await axiosApiInstance.post('/expenses', {
             paid:form.paid,
             sold:form.sold,
             shipping: form.shipping,
@@ -71,9 +66,9 @@ class App extends React.Component {
             item_profit,
             platform:form.platform,
             date: form.date
-        },{ headers:g });
+        });
 
-        await API.get('/expenses', {headers: g})
+        await axiosApiInstance.get('/expenses')
         .then( response => {
             console.log(response);
             this.context.setExpense(response.data.expenses);
@@ -89,7 +84,7 @@ class App extends React.Component {
     //             console.log("In IF",this.context.currentUser);
 
                 
-    //             await API.get(`/expenses`, this.createHeader)
+    //             await axiosApiInstance.get(`/expenses`, this.createHeader)
     //                 .then( response => {
     //                     console.log(response.data);
     //                     this.setState({list:response.data.data.id});

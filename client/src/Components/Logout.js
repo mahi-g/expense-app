@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useHistory } from 'react-router-dom';
-import API from '../api/api';
+import axiosApiInstance from '../api/axios';
 import { userInfoContext } from '../userInfoContext';
 
 const Logout = () => {
@@ -8,7 +8,7 @@ const Logout = () => {
     const history = useHistory();
 
     async function logout(){
-        await API.post('/logout', {}, { header: { authorization: tokens.accessToken} }).then(response => {
+        await axiosApiInstance.post('/logout', {}, { header: { authorization: tokens.accessToken} }).then(response => {
             setTokenValues({});
             setUserValue("");
             setExpense([]);
