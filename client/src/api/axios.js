@@ -21,26 +21,32 @@ axiosApiInstance.interceptors.request.use( req => {
   });
 
 axiosApiInstance.interceptors.response.use(res => res, async err => {
-    console.log("Response interceptor");
-    console.log("Error:",err.response);
-        console.log("Error config:",err.config);
-
+    
+        //if error is 403, accessToken is expired, refresh the token
         if(err.response.status === 403){
              
             await axiosApiInstance.post('/refresh-token', {}, {withCredentials:true}).then(
+                //store the new accessToken in localStorage
                 res => {
                     console.log(res);
                     localStorage.removeItem('accessToken');
                     localStorage.setItem('accessToken', res.data.accessToken);
-
                 }
             );
-            const originalRequest = err.config;
-            originalRequest.headers.authorization = 'Bearer '+localStorage.getItem('accessToken');
-            axiosApiInstance.request(originalRequest);
-            return Promise.reject(err);
+            reTryRequest(err.config);
+            return err;
         }
 });
 
+const reTryRequest = (originalRequest) => {
+    //retry the old request that returned 403 error
+    //attach the new accessToken into the header
+    originalRequest.headers.authorization = 'Bearer '+localStorage.getItem('accessToken');
+    axiosApiInstance.request(originalRequest).then(response => {
+        console.log("response from retry");
+        console.log(response);
+
+    });
+}
 
   export default axiosApiInstance;

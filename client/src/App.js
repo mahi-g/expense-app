@@ -82,14 +82,14 @@ class App extends React.Component {
         console.log("accessTokenExists", accessTokenExists);
 
         if(accessTokenExists) {
-            this.context.setAuth(true);
-            this.context.setUser(localStorage.getItem('username'));
-            if(this.context){
-                await axiosApiInstance.get('/expenses')
-                    .then( response => {
-                        this.context.setExpense(response.data.expenses);
-                    }).catch( error => console.log(error));
-                }
+            const x = await axiosApiInstance.get('/expenses')
+                .then( response => {
+                    this.context.setExpense(response.data.expenses);
+                    this.context.setAuth(true);
+                    this.context.setUser(localStorage.getItem('username'));
+            }).catch( error => console.log("Error from expense",error));
+
+            console.log("x:",x);
         }
     }
 
