@@ -31,7 +31,7 @@ class TrackPackages extends React.Component {
     //the api  
     async removeTracking(e) {
         const value = e.target.value;
-        if(this.state.trackingIds.length===1) {
+        if(this.state.trackingIds.length === 1) {
             await axiosApiInstance.delete(`tracking/${value}`).catch(error=> console.log(error));
             this.setState({trackingIds: [], deliveryData: []});
         }
@@ -109,10 +109,10 @@ class TrackPackages extends React.Component {
         //reset delivery data to avoid duplication
         this.setState(()=>({deliveryData: []}));
 
-        //Create axiosApiInstance url with userID and tracking numbers
+        //Create API url with userID and tracking numbers
         const url = "https://secure.shippingaxioss.com/Shippingaxios.dll?axiosApiInstance=TrackV2&XML="+
         "<TrackRequest USERID=\"959NA0006949\">"+
-        trackingaxiosCall(tracking)+ 
+        trackingApiCall(tracking)+ 
         "</TrackRequest>";
 
         await fetch(url)
@@ -132,21 +132,18 @@ class TrackPackages extends React.Component {
     }
 
     async componentDidMount() {
-        console.log(this.context.tokens.accessToken);
+        console.log(this.context.token.accessToken);
         console.log("Tracking component did update");
-        // await axiosApiInstance.get(`/tracking`)
-        //     .then(response => {
-        //         console.log(response);
-        //         response.data.tracking.length<1 ? this.setState({trackingIds: []}) : this.setState({trackingIds: response.data.tracking[0].tracking_num})
-        //     });
-        await axiosApiInstance.post('/refresh-token', {}, {withCredentials: true}).then(
-            res => {
-                console.log(res);
+        if(this.context.isAuthenticated){
+            await axiosApiInstance.get(`/tracking`)
+            .then(response => {
+                console.log(response);
+                response.data.tracking.length<1 ? this.setState({trackingIds: []}) : this.setState({trackingIds: response.data.tracking[0].tracking_num})
+            }).catch(error => console.log(error));
+
+            if(this.state.trackingIds.length !== 0){
+                this.readData(this.state.trackingIds);
             }
-        );
-        console.log(this.state);
-        if(this.state.trackingIds.length !== 0){
-            this.readData(this.state.trackingIds);
         }
     }
 
@@ -188,7 +185,7 @@ const PrintData = (props) => {
     )
 }
 
-function trackingaxiosCall(trackingNums){
+function trackingApiCall(trackingNums){
     let trackID = "";
     trackingNums.map((id) => trackID+="<TrackID ID=\"" + id + "\"/>");
     return trackID;

@@ -23,13 +23,14 @@ app.listen(port, () => {
 //middlewares
 //enable cors for all routes
 app.use(express.json());
+app.use(cookieParser());
 
 const options = {
     credentials: true, 
     origin: 'http://localhost:3000',
+    allowedHeaders: 'Content-Type,Authorization'
 }
 app.use(cors(options));
-app.use(cookieParser());
 
 
 //Middleware that gets the authorization value from the header
@@ -45,6 +46,7 @@ const authenticateJWT = (req, res, next) => {
         jwt.verify(token, accessTokenSecret, (err, verifiedJWT) => {
             if (err) {
                 console.log("Error in verification");
+                console.log(err);
                 return res.sendStatus(403);
             }
             //contains username, iat, exp
@@ -57,7 +59,9 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
+const createTokens = () => {
 
+}
 //Generate access tokens and clerefresh tokens during login
 app.post('/api/login', async (req, res) => {
     //get auth header from request, [0] is a string "Basic" and [1] contains the username and password encoded in base64
@@ -72,14 +76,12 @@ app.post('/api/login', async (req, res) => {
 
     bcrypt.compare(password, user.rows[0].password, (err, result) => {
         if(result) {
-            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1m' });
+            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '2m' });
             const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '48h' });
             refreshTokens.push(refreshToken);
             res.cookie('refreshToken', refreshToken, {
-                sameSite: 'none',
                 expires: new Date(Date.now() + 172800000),
                 secure: false, // set to true if your using https
-                httpOnly: true,
             });
             console.log(refreshTokens);
             res.status(200).json({ accessToken });
@@ -89,6 +91,12 @@ app.post('/api/login', async (req, res) => {
             res.send("Username or password incorrect");
         }
     });
+});
+
+app.get('/api/hi', (req, res) => {
+    const { refreshToken } = req.cookies;
+    console.log(req.cookies);
+    res.send("success");
 });
 
 const checkUsernameAvailable = async (req, res, next) => {
@@ -120,27 +128,31 @@ app.post('/api/signup', checkUsernameAvailable, checkPasswordLength, async (req,
 
 //Generate new access tokens using refresh tokens 
 app.post('/api/refresh-token', (req, res) => {
-    console.log(req.headers);
-    console.log("refresh token");
     const { refreshToken } = req.cookies;
-    console.log("cookies", refreshToken);
+
     if(!refreshToken){
         return res.sendStatus(401);
     }
-    if(!refreshTokens.includes(refreshToken)){
-        return res.sendStatus(403);
-    }
-    jwt.verify(refreshToken, refreshTokenSecret, (err, user) => {
-        if(err){ return res.sendStatus(401);}
-        const accessToken = jwt.sign(user, accessTokenSecret, { expiresIn: '1m' });
-        res.json({ accessToken });        
-    })
+    // if(!refreshTokens.includes(refreshToken)){
+    //     return res.sendStatus(403);
+    // }
+
+    jwt.verify(refreshToken, refreshTokenSecret, (err, {username}) => {
+        if(err){ 
+            return res.sendStatus(401);
+        }
+        console.log(username);
+        const accessToken = jwt.sign({ username }, accessTokenSecret, { expiresIn: '2m' });
+        res.json({ accessToken });     
+    });
+       
 });
 
 app.post('/api/logout', (req, res) => {
-    const { token } = req.body;
-    refreshTokens = refreshTokens.filter(t => t != token);
-    res.send("Logout successful");
+    const { refreshToken } = req.cookies;
+    refreshTokens = refreshTokens.filter(t => t != refreshToken);
+    res.clearCookie('refreshToken');
+    res.sendStatus(200);
 });
 
 //READ all expenses

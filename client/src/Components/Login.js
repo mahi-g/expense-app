@@ -2,27 +2,27 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { userInfoContext } from '../userInfoContext';
 import axiosApiInstance from '../api/axios';
-import { useCookies } from 'react-cookie';
 
 
 const Login = () => {
     const [error, setError] =  useState(false);
-    const {currentUser, tokens, setTokenValues, setUserValue, setExpense, setAuth} = useContext(userInfoContext);
+    const {currentUser, setAccessToken, setUser, setExpense, setAuth} = useContext(userInfoContext);
 
     const history = useHistory();
 
     async function handleLogin(e){
         e.preventDefault();
         console.log(e.target.username.value);
-        await axiosApiInstance.post('/login', {}, {auth: {username: e.target.username.value, password: e.target.password.value}})
+        await axiosApiInstance.post('/login', {}, {auth: {username: e.target.username.value, password: e.target.password.value}, withCredentials: true })
              .then( response => {
                  console.log(response);
                  if(response.data !== undefined){
-                    setTokenValues({accessToken: response.data.accessToken});
-                    setUserValue(response.config.auth.username);
+                    setAccessToken({accessToken: response.data.accessToken});
+                    setUser(response.config.auth.username);
                     setAuth(true);
                     localStorage.setItem('accessToken', response.data.accessToken);
-                    console.log(localStorage.getItem('accessToken'));
+                    localStorage.setItem('username', response.config.auth.username);
+
                     history.push("/dashboard");
                  }
              }).catch( e => {
@@ -38,8 +38,7 @@ const Login = () => {
             ( async () => {
                 await axiosApiInstance.get('/expenses')
                     .then( response => {
-                    console.log(response);
-                    setExpense(response.data.expenses);
+                        setExpense(response.data.expenses);
                 });
             })()
         }

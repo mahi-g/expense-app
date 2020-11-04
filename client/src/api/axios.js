@@ -8,7 +8,9 @@ const axiosApiInstance = axios.create({
 //request interceptor that defines the header for all routes
 axiosApiInstance.interceptors.request.use( req => {
     console.log("RUNNING INTERCEPTOR");
-    console.log(`${req.method} ${req.url}`);
+    console.log(`${req.url}`);
+    console.log(req);
+
     if(req.url !== '/login') { 
         if(req.url !== '/refresh-token') { 
             req.headers.authorization = 'Bearer '+localStorage.getItem('accessToken');
@@ -18,24 +20,27 @@ axiosApiInstance.interceptors.request.use( req => {
     return req;
   });
 
-axiosApiInstance.interceptors.response.use( res => res, err => {
+axiosApiInstance.interceptors.response.use(res => res, async err => {
     console.log("Response interceptor");
     console.log("Error:",err.response);
+        console.log("Error config:",err.config);
+
         if(err.response.status === 403){
-             (async() => {
-                await axiosApiInstance.post('/refresh-token', {}, {withCredentials:true}).then(
-                    res => {
-                        console.log(res);
-                    }
-                );
-            })();
-            console.log("if");
+             
+            await axiosApiInstance.post('/refresh-token', {}, {withCredentials:true}).then(
+                res => {
+                    console.log(res);
+                    localStorage.removeItem('accessToken');
+                    localStorage.setItem('accessToken', res.data.accessToken);
+
+                }
+            );
+            const originalRequest = err.config;
+            originalRequest.headers.authorization = 'Bearer '+localStorage.getItem('accessToken');
+            axiosApiInstance.request(originalRequest);
+            return Promise.reject(err);
         }
-        else{
-            console.log("Else");
-        }
-    }
-);
+});
 
 
   export default axiosApiInstance;

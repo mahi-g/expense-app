@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import App from './App';
-import { CookiesProvider } from 'react-cookie';
 import { UserInfoContextProvider } from './userInfoContext';
 
 import * as serviceWorker from './serviceWorker';
@@ -12,9 +11,7 @@ import './index.css';
 ReactDOM.render(
   <React.StrictMode>
     <UserInfoContextProvider>
-      <CookiesProvider>
         <App />
-      </CookiesProvider>
     </UserInfoContextProvider>
   </React.StrictMode>,
   document.getElementById('app')

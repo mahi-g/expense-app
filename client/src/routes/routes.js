@@ -16,8 +16,9 @@ import ViewExpenses from "../Components/ViewExpenses";
 const PrivateRoutes = ({children}) => {
     const user = useContext(userInfoContext);
     console.log("currentUser",user.currentUser);
-    console.log("Tokens",user.tokens);
+    console.log("Tokens",user.token);
     console.log("Expenses",user.expenseList);
+    console.log("Expenses",user.isAuthenticated);
 
     if(!user.isAuthenticated) {
         return <Redirect to={{pathname:"/login"}}/>
@@ -34,11 +35,9 @@ const PublicRoutes = ({children}) => {
 
 
 const Routes = (props) =>{
-    const user = useContext(userInfoContext);
 
     return(
             <Switch>
-                
                     <Route path="/login"><Login/></Route>
                     <Route path="/signup"><Signup/></Route>
                     <Route exact path="/">
@@ -61,8 +60,6 @@ const Routes = (props) =>{
                         />
                     </Route>
                 </PrivateRoutes>
-
-                
             </Switch>    
     );
 };

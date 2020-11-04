@@ -76,30 +76,23 @@ class App extends React.Component {
     }
 
    
-    // async componentDidMount() {
-    //     try{
-    //         console.log("In componentdidmount",this.context.currentUser);
+    async componentDidMount() {
+        const accessTokenExists = localStorage.getItem('accessToken') !== null;
 
-    //         if(this.context.currentUser !== ""){
-    //             console.log("In IF",this.context.currentUser);
+        console.log("accessTokenExists", accessTokenExists);
 
-                
-    //             await axiosApiInstance.get(`/expenses`, this.createHeader)
-    //                 .then( response => {
-    //                     console.log(response.data);
-    //                     this.setState({list:response.data.data.id});
-    //             });
-    //         }
-            
-    //     }
-    //     catch(err){
-    //         console.log(err);
-    //     }
-    // }
-
-    componentDidMount(){
-        console.log("APP JS Component Did Mount");
+        if(accessTokenExists) {
+            this.context.setAuth(true);
+            this.context.setUser(localStorage.getItem('username'));
+            if(this.context){
+                await axiosApiInstance.get('/expenses')
+                    .then( response => {
+                        this.context.setExpense(response.data.expenses);
+                    }).catch( error => console.log(error));
+                }
+        }
     }
+
     componentDidUpdate(){
         console.log("APP JS Component Did Update");
     }
@@ -129,8 +122,6 @@ class App extends React.Component {
         );
     }
 }
-
-
 
 export default App;
 
