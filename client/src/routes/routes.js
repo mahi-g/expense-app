@@ -34,8 +34,7 @@ const PublicRoutes = ({children}) => {
 }
 
 
-const Routes = (props) =>{
-
+const Routes = (props) => {
     return(
             <Switch>
                     <Route path="/login"><Login/></Route>
@@ -46,22 +45,22 @@ const Routes = (props) =>{
                             state = {props.state}
                         />
                     </Route>
-                <PrivateRoutes>
-                    <Route path="/dashboard">
-                        <Dashboard 
-                            state={props.state}
-                            handleFormInputs={props.handleFormInputs}
-                        />
-                    </Route>
-                    <Route path="/track"><TrackPackages/></Route>
-                    <Route path="/expenses">
-                        <ViewExpenses
-                            handleDeleteOption = {props.handleDeleteOption}
-                        />
-                    </Route>
-                </PrivateRoutes>
+                    <PrivateRoutes>
+                        <Route path="/dashboard">
+                            <Dashboard 
+                                state={props.state}
+                                handleFormInputs={props.handleFormInputs}
+                            />
+                        </Route>
+                        <Route path="/track"><TrackPackages/></Route>
+                        <Route path="/expenses">
+                            <ViewExpenses
+                                handleDeleteOption = {props.handleDeleteOption}
+                            />
+                        </Route>
+                    </PrivateRoutes>
             </Switch>    
     );
 };
-                
+
 export default Routes;

@@ -189,7 +189,15 @@ app.post('/api/expenses', authenticateJWT, async (req,res) => {
 //WRITE a tracking number
 app.post("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
     try {
-        const result = await db.query(`INSERT INTO tracking (username, tracking_num) VALUES($1, ARRAY [$2]) RETURNING tracking_num;`, [req.user.username, req.params.tracking_num]);
+        const results = await db.query(`SELECT count(*) FROM tracking WHERE cardinality(tracking_num) = 0 AND username = $1`, [req.user.username]);
+        console.log(results.rows);
+        let result;
+        
+        if(results.rows[0].count === 0) {
+            result = await db.query(`INSERT INTO tracking (username, tracking_num) VALUES($1, ARRAY [$2]) RETURNING tracking_num;`, [req.user.username, req.params.tracking_num]);
+        }
+        const tracking_num = `\{${req.params.tracking_num}\}`;
+        result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num;`, [tracking_num, req.user.username]);
         res.status(200).json({
             status: "success",
             data: result.rows
@@ -199,20 +207,20 @@ app.post("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
     }
 });
 
-//UPDATE existing tracking numbers
-app.put("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
-    try {
-        console.log(req.params.tracking_num);
-        const tracking_num = `\{${req.params.tracking_num}\}`;
-        const result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num ;`, [tracking_num, req.user.username]);
-        res.status(200).json({
-            status: "success",
-            data: result.rows
-        });
-    } catch(err) {
-        console.error(err);
-    }
-});
+// //UPDATE existing tracking numbers
+// app.put("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
+//     try {
+//         console.log(req.params.tracking_num);
+//         const tracking_num = `\{${req.params.tracking_num}\}`;
+//         const result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num ;`, [tracking_num, req.user.username]);
+//         res.status(200).json({
+//             status: "success",
+//             data: result.rows
+//         });
+//     } catch(err) {
+//         console.error(err);
+//     }
+// });
 
 //DELETE an expense
 app.delete('/api/expenses/:transaction_id', authenticateJWT, async (req,res) => {

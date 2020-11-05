@@ -7,7 +7,7 @@ import {userInfoContext} from '../userInfoContext';
 //9400128206335287197597
 
 //ISSUE -> HANDLING INVALID TRACKING IDS
-//ISSUE -> GETTING AN ERROR MESSAGE FROM USPS axiosApiInstance
+//ISSUE -> GETTING AN ERROR MESSAGE FROM USPS api
 
 class TrackPackages extends React.Component {
      
@@ -30,17 +30,33 @@ class TrackPackages extends React.Component {
     //Else, deletes the array, updates the state with the response data, and recalls the readData() function to fetch data from 
     //the api  
     async removeTracking(e) {
-        const value = e.target.value;
-        if(this.state.trackingIds.length === 1) {
-            await axiosApiInstance.delete(`tracking/${value}`).catch(error=> console.log(error));
-            this.setState({trackingIds: [], deliveryData: []});
-        }
-        else {
-            await axiosApiInstance.delete(`tracking/${value}`).then( response => {
+
+        await axiosApiInstance.delete(`tracking/${e.target.value}`).then( response => {
+            if(response.data.tracking[0].length === 0) {
+                this.setState({trackingIds: [], deliveryData: []});
+            }
+            else {
                 this.setState({trackingIds: response.data.tracking[0].tracking_num});
-            }).catch(error=> console.log(error));
+            }
+        }).catch(error=> console.log(error));
+
+        //if state
+        if(this.state.trackingIds.length >= 1) {
             this.readData(this.state.trackingIds);
         }
+
+
+
+        // if(this.state.trackingIds.length === 1) {
+        //     await axiosApiInstance.delete(`tracking/${value}`).catch(error=> console.log(error));
+        //     this.setState({trackingIds: [], deliveryData: []});
+        // }
+        // else {
+        //     await axiosApiInstance.delete(`tracking/${value}`).then( response => {
+        //         this.setState({trackingIds: response.data.tracking[0].tracking_num});
+        //     }).catch(error=> console.log(error));
+        //     this.readData(this.state.trackingIds);
+        // }
     }
 
     //handles tracking number from form input, adds it to database, updates state
@@ -54,24 +70,13 @@ class TrackPackages extends React.Component {
         if(!this.state.trackingIds.includes(tracking_num)) {
             //check if trackingIds undefined or empty, 
             //if so, send a post request that adds the username and tracking numbers in the db tracking table
-            if(this.state.trackingIds.length === 0 || this.state.trackingIds === undefined ){
-                await axiosApiInstance.post(`/tracking/${tracking_num}`).then(
-                    response => {
-                        console.log(response);
-                        this.setState({trackingIds:response.data.data[0].tracking_num});
-                    }  
-                ).catch(error=> console.log(error));
-            }
-            //Update the existing tracking table in the db for the user if there are already trackingIds in their account
-            else {
-                await axiosApiInstance.put(`/tracking/${tracking_num}`).then(
-                    response => {
-                        console.log("PUT");
-                        console.log(response);
-                        this.setState({trackingIds:response.data.data[0].tracking_num});
-                    }  
-                ).catch(error=> console.log(error));
-            }
+            await axiosApiInstance.post(`/tracking/${tracking_num}`).then(
+                response => {
+                    console.log(response);
+                    this.setState({trackingIds:response.data.data[0].tracking_num});
+                }  
+            ).catch(error=> console.log(error));
+            
             this.readData(this.state.trackingIds);
         }
         else {
@@ -110,7 +115,7 @@ class TrackPackages extends React.Component {
         this.setState(()=>({deliveryData: []}));
 
         //Create API url with userID and tracking numbers
-        const url = "https://secure.shippingaxioss.com/Shippingaxios.dll?axiosApiInstance=TrackV2&XML="+
+        const url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML="+
         "<TrackRequest USERID=\"959NA0006949\">"+
         trackingApiCall(tracking)+ 
         "</TrackRequest>";
