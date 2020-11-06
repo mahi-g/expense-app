@@ -43,18 +43,23 @@ const Login = () => {
             })()
         }
     },[currentUser]);
-
+    
+    
     return (
         <div>
-            <form onSubmit={handleLogin}>
-                { error && <p>incorrect username or password</p> }
-                <label>Username</label>
-                <input type="text" name="username" required/>
-                <label>Password</label>
-                <input type="password" name="password" required/>
-                <button>Login</button>
-                <p>{currentUser}</p>
-            </form>
+        { 
+            currentUser === "" ?  
+            (
+                <form onSubmit={handleLogin}>
+                    { error && <p>incorrect username or password</p> }
+                    <label>Username</label>
+                    <input type="text" name="username" required />
+                    <label>Password</label>
+                    <input type="password" name="password" required />
+                    <button>Login</button>
+                </form>
+            ) : () => history.push("/dashboard")
+        }
         </div>
     );
 }

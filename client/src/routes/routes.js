@@ -52,7 +52,14 @@ const Routes = (props) => {
                                 handleFormInputs={props.handleFormInputs}
                             />
                         </Route>
-                        <Route path="/track"><TrackPackages/></Route>
+                        <Route path="/track">
+                            <TrackPackages
+                                addTracking = {props.addTracking}
+                                readData = {props.readData}
+                                removeTracking = {props.removeTracking}
+                                state = {props.state}
+                            />
+                        </Route>
                         <Route path="/expenses">
                             <ViewExpenses
                                 handleDeleteOption = {props.handleDeleteOption}

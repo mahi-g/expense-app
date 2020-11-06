@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import axiosApiInstance from './api/axios';
 import { userInfoContext } from './userInfoContext';
 import { BrowserRouter as Router, useHistory } from 'react-router-dom';
@@ -19,13 +19,132 @@ class App extends React.Component {
             seller_fee: 0,
             shipping: 0,
             netProfit: 0,
-            isLoggedIn: false
+            deliveryData: [],
+            trackingIds: [],
+            error: false
         };
         this.handleFormInputs = this.handleFormInputs.bind(this);
         this.handleDeleteOption = this.handleDeleteOption.bind(this);
+        this.addTracking = this.addTracking.bind(this);
+        this.readData = this.readData.bind(this);
+        this.removeTracking = this.removeTracking.bind(this);
+        this.stateSetter = this.stateSetter.bind(this);
     }
+
     static contextType = userInfoContext;
 
+    stateSetter(responseTrackingNumbers){
+        this.setState({trackingIds: responseTrackingNumbers});
+        if(responseTrackingNumbers.length !== 0){
+            this.readData(this.state.trackingIds);
+        }
+    }
+
+    //Remove data by making a delete request
+    //If only one tracking number exists in the array, then sets the trackingId and deliveryData in the state to empty arrays
+    //Else, deletes the array, updates the state with the response data, and recalls the readData() function to fetch data from 
+    //the api  
+    async removeTracking(e) {
+        await axiosApiInstance.delete(`tracking/${e.target.value}`).then( response => {
+            if(response.data.tracking[0].length === 0) {
+                this.setState({trackingIds: [], deliveryData: []});
+            }
+            else {
+                this.setState({trackingIds: response.data.tracking[0].tracking_num});
+            }
+        }).catch(error=> console.log(error));
+
+        //if state
+        if(this.state.trackingIds.length >= 1) {
+            this.readData(this.state.trackingIds);
+        }
+    }
+
+    //handles tracking number from form input, adds it to database, updates state
+    //first checks if input value already exists in the state trackingId array
+    //then checks if trackingId is empty or undefined, sends post request to insert trackingId array into table, 
+    //else update existing array with a put request
+    //updates trackingIds array in states
+    async addTracking(e){
+        e.preventDefault();
+        const tracking_num = e.target.track.value;
+        if(!this.state.trackingIds.includes(tracking_num)) {
+            //check if trackingIds undefined or empty, 
+            //if so, send a post request that adds the username and tracking numbers in the db tracking table
+            await axiosApiInstance.post(`/tracking/${tracking_num}`).then(
+                response => {
+                    console.log(response);
+                    this.setState({trackingIds:response.data.data[0].tracking_num});
+                }  
+            ).catch(error=> console.log(error));
+            
+            this.readData(this.state.trackingIds);
+        }
+        else {
+            console.log("already exists");
+        }
+    }
+
+    //Parse xml data for a trackingID
+    cleanData(text, trackingId){
+        let deliveryDatas = [];
+        let detail;
+        let summary;
+
+        //Parse text to xml
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(text,"text/xml");
+        const error = xmlDoc.getElementsByTagName("Error");
+        //Check if shipping API returns error
+        if(error[0] !== undefined){
+            summary = xmlDoc.getElementsByTagName("Description")[0].textContent;
+        } else {
+            //Get track summary
+            detail = xmlDoc.getElementsByTagName("TrackSummary");
+            summary = detail[0].textContent;
+
+            //Get all data inside TrackDetail tags
+            //Update state with the data
+            detail = xmlDoc.getElementsByTagName("TrackDetail");
+            for(const [key, value] of Object.entries(detail)) {
+                deliveryDatas.push(value.childNodes[0].nodeValue);
+            }
+        }
+        console.log({trackingId,summary,deliveryDatas});
+
+        this.setState(()=>(
+            {
+                deliveryData: this.state.deliveryData.concat([{trackingId,summary,deliveryDatas}])
+            }
+        ));
+    }
+
+
+    async readData(tracking) {
+        //reset delivery data to avoid duplication
+        this.setState(()=>({deliveryData: []}));
+
+        //Create API url with userID and tracking numbers
+        const url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML="+
+        "<TrackRequest USERID=\"959NA0006949\">"+
+        trackingApiCall(tracking)+ 
+        "</TrackRequest>";
+
+        await fetch(url)
+            .then(response => response.text())
+            .then(text => {
+                console.log(text);
+                //Split text array by </TrackInfo> which puts the data for each tracking number into an array item
+                let x = text.split("</TrackInfo>");
+                //Iterate through each item in the array
+                //Each item and adjacent tracking number is parsed with cleanData() function
+                x.map((d,i)=>{
+                    if(i !== x.length-1) {
+                        this.cleanData(x[i], tracking[i]);
+                    }
+                })
+            })
+    }
     
     //Deletes selected expense, fetch updated expense list and updates state
     async handleDeleteOption(e){
@@ -74,9 +193,7 @@ class App extends React.Component {
                     this.context.setExpense(response.data.expenses);
                 });
             }
-        });
-
-       
+        });       
     }
 
    
@@ -98,7 +215,18 @@ class App extends React.Component {
             //if a 403 error is returned, current access token is expired and a new access token is 
             //generated and the get request is called again inside the axios response interceptor    
             }).catch( error => console.log("Error from expense", error));
-        }
+
+            await axiosApiInstance.get(`/tracking`)
+                .then(response => {
+                    console.log(response);
+                    //response.data.tracking.length<1 ? this.setState({trackingIds: []}) : 
+                    this.setState({trackingIds: response.data.tracking[0].tracking_num})
+                }).catch(error => console.log(error));
+
+            if(this.state.trackingIds.length !== 0){
+                this.readData(this.state.trackingIds);
+            }          
+        }  
     }
 
     componentDidUpdate(){
@@ -119,6 +247,9 @@ class App extends React.Component {
                                 state={this.state} 
                                 handleFormInputs={this.handleFormInputs}
                                 handleDeleteOption = {this.handleDeleteOption}
+                                addTracking = {this.addTracking}
+                                readData = {this.readData}
+                                removeTracking = {this.removeTracking}
                             /> 
                         </div>
                     </div>
@@ -126,24 +257,23 @@ class App extends React.Component {
                         {/*Empty For Now*/}
                     </div>
                 </div>
-                <RefreshToken />
+                <RefreshToken stateSetter= {this.stateSetter}/>
             </Router>
         );
     }
 }
 
-const RefreshToken = () => {
+const RefreshToken = (props) => {
     const { setUser, setExpense, setAuth, currentUser, isAuthenticated } = useContext(userInfoContext);
+    const history = useHistory();
 
     axiosApiInstance.interceptors.response.use(res => res, async err => {
 
         //cookie has expired, redirect to login page
-        // if(err.response.status === 401){ 
-        //     const history = useHistory();
-        //     history.push('/login');
-        // };
+        if(err.response.status === 401){ 
+            history.push('/login');
+        };
 
-    
         console.log(err.response);
         //accessToken is expired, refresh the token
         if(err.response.status === 403){
@@ -164,12 +294,16 @@ const RefreshToken = () => {
 
 
     const retryRequest = (originalRequest) => {
-        //retry the old request that returned the 403 error
-        axiosApiInstance.request(originalRequest).then(res => {
-            console.log("response from retry");
-            console.log(res);
-            //if request is get, then save the expense data in the response to the user context api
-            if(originalRequest.method === 'get') {
+        //retry the old request that returned the 403 error if it is post or delete
+        if(originalRequest.method === 'post' || originalRequest.method === 'delete') {
+            axiosApiInstance.request(originalRequest).catch(e=>{
+                console.log("Retry request unsuccessful: ", e);
+                });
+        }
+        //if old request is get or post/delete requests above are made succesfully, a get request is made
+        //to retrieve the data for expense or tracking
+        if(originalRequest.url === '/expenses') {
+            axiosApiInstance.get(originalRequest.url).then((res => {
                 setExpense(res.data.expenses);
                 //check if currentUser and isAuthenticated have default value (this happens when user session is still persistent 
                 //but user exits the browser thus removing data from the user context api)
@@ -179,17 +313,60 @@ const RefreshToken = () => {
                     setAuth(true);
                     setUser(localStorage.getItem('username'));
                 }
-            }
-            //if request is post, make a get request using the same url and save the response to the user context api
-            if(originalRequest.method === 'post' || originalRequest.method === 'delete') {
-                axiosApiInstance.get(originalRequest.url).then((res => setExpense(res.data.expenses)));
-            }
-        });
+            }));
+        } else {
+            axiosApiInstance.get('/tracking').then((res => {
+                console.log("stateSetter", res);
+                props.stateSetter(res.data.tracking[0].tracking_num);
+                }
+            ));
+        }
+
+            
+     
+    
+        // //retry the old request that returned the 403 error
+        // axiosApiInstance.request(originalRequest).then(res => {
+        //     console.log("response from retry");
+        //     console.log(res);
+        //     //if request is get, then save the expense data in the response to the user context api
+        //     if(originalRequest.method === 'get') {
+        //         if(originalRequest.url === '/expense') {
+        //             setExpense(res.data.expenses);
+        //             //check if currentUser and isAuthenticated have default value (this happens when user session is still persistent 
+        //             //but user exits the browser thus removing data from the user context api)
+        //             //this condition is checked when componentDidMount runs, the get expense request fails, a new access token is created
+        //             //and the get request is reran
+        //             if(currentUser === "" || !isAuthenticated){
+        //                 setAuth(true);
+        //                 setUser(localStorage.getItem('username'));
+        //             }
+        //         } else {
+        //             props.stateSetter(res.data.tracking[0].tracking_num);
+        //         }
+        //     }
+        //     //if request is post, make a get request using the same url and save the response to the user context api
+        //     if(originalRequest.method === 'post' || originalRequest.method === 'delete') {
+        //         axiosApiInstance.get(originalRequest.url).then((res => {
+        //             if(originalRequest.url === '/expense') {
+        //                 setExpense(res.data.expenses)
+        //             } else{
+        //                 props.stateSetter(res.data.tracking[0].tracking_num);
+        //             }
+        //         }));
+        //     }
+        // });
     }
 
     return(
         <div></div>
     )
+}
+
+function trackingApiCall(trackingNums){
+    let trackID = "";
+    trackingNums.map((id) => trackID+="<TrackID ID=\"" + id + "\"/>");
+    return trackID;
 }
 
 export default App;
