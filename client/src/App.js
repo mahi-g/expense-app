@@ -185,14 +185,11 @@ class App extends React.Component {
             item_profit,
             platform:form.platform,
             date: form.date
-        }).catch( async err => {
-            if(!err){
-                await axiosApiInstance.get('/expenses')
-                .then( response => {
-                    console.log(response);
-                    this.context.setExpense(response.data.expenses);
-                });
-            }
+        });
+        await axiosApiInstance.get('/expenses')
+            .then( response => {
+            console.log(response);
+            this.context.setExpense(response.data.expenses);
         });       
     }
 
@@ -269,26 +266,43 @@ const RefreshToken = (props) => {
 
     axiosApiInstance.interceptors.response.use(res => res, async err => {
 
+        console.log("FIRST",err);
+
         //cookie has expired, redirect to login page
-        if(err.response.status === 401){ 
+        if(err.response.status === 401 && err.config.url === '/refresh-token'){ 
+            setUser("");
+            setExpense([]);
+            setAuth(false);
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('username');
             history.push('/login');
         };
 
+        console.log("-----------");
         console.log(err.response);
+        console.log(err.response.status);
+        console.log("-----------");
+
         //accessToken is expired, refresh the token
         if(err.response.status === 403){
-             
+            let success;
             await axiosApiInstance.post('/refresh-token', {}, {withCredentials:true}).then(
                 //store the new accessToken in localStorage
                 res => {
-                    console.log(res);
-                    localStorage.removeItem('accessToken');
-                    localStorage.setItem('accessToken', res.data.accessToken);
+                    if(res){
+                        success = true;
+                        localStorage.removeItem('accessToken');
+                        localStorage.setItem('accessToken', res.data.accessToken);
+                       
+                    }
                 }
             );
-            //attach the new accessToken into the header and retry the failed request
-            err.config.headers.authorization = 'Bearer '+localStorage.getItem('accessToken');
-            retryRequest(err.config);
+             //attach the new accessToken into the header and retry the failed request
+             if(success){
+                err.config.headers.authorization = 'Bearer '+localStorage.getItem('accessToken');
+                retryRequest(err.config);
+             }
+            
         }
     });
 
@@ -317,45 +331,11 @@ const RefreshToken = (props) => {
         } else {
             axiosApiInstance.get('/tracking').then((res => {
                 console.log("stateSetter", res);
-                props.stateSetter(res.data.tracking[0].tracking_num);
+                res.data.tracking.length !== 0 ? props.stateSetter(res.data.tracking[0].tracking_num) : props.stateSetter([]);
+                
                 }
             ));
         }
-
-            
-     
-    
-        // //retry the old request that returned the 403 error
-        // axiosApiInstance.request(originalRequest).then(res => {
-        //     console.log("response from retry");
-        //     console.log(res);
-        //     //if request is get, then save the expense data in the response to the user context api
-        //     if(originalRequest.method === 'get') {
-        //         if(originalRequest.url === '/expense') {
-        //             setExpense(res.data.expenses);
-        //             //check if currentUser and isAuthenticated have default value (this happens when user session is still persistent 
-        //             //but user exits the browser thus removing data from the user context api)
-        //             //this condition is checked when componentDidMount runs, the get expense request fails, a new access token is created
-        //             //and the get request is reran
-        //             if(currentUser === "" || !isAuthenticated){
-        //                 setAuth(true);
-        //                 setUser(localStorage.getItem('username'));
-        //             }
-        //         } else {
-        //             props.stateSetter(res.data.tracking[0].tracking_num);
-        //         }
-        //     }
-        //     //if request is post, make a get request using the same url and save the response to the user context api
-        //     if(originalRequest.method === 'post' || originalRequest.method === 'delete') {
-        //         axiosApiInstance.get(originalRequest.url).then((res => {
-        //             if(originalRequest.url === '/expense') {
-        //                 setExpense(res.data.expenses)
-        //             } else{
-        //                 props.stateSetter(res.data.tracking[0].tracking_num);
-        //             }
-        //         }));
-        //     }
-        // });
     }
 
     return(

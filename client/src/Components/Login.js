@@ -58,7 +58,7 @@ const Login = () => {
                     <input type="password" name="password" required />
                     <button>Login</button>
                 </form>
-            ) : () => history.push("/dashboard")
+            ) : <p>You are logged in as {currentUser}</p>
         }
         </div>
     );

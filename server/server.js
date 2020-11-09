@@ -11,8 +11,6 @@ const app = express();
 //define env variables/ dbd configurations
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
-let refreshTokens = [];
-
 const port = process.env.PORT || 3005;
 
 app.listen(port, () => {
@@ -25,6 +23,7 @@ app.listen(port, () => {
 app.use(express.json());
 app.use(cookieParser());
 
+//set credentials to true to allow cookie headers
 const options = {
     credentials: true, 
     origin: 'http://localhost:3000',
@@ -40,17 +39,16 @@ app.use(cors(options));
 //If error, sends a 403, else verifiedJWT info is attached to req header
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers["authorization"];
-    console.log(authHeader);
+    console.log("Auth: ", authHeader);
     if (authHeader) {
         const token = authHeader.split(' ')[1];
         jwt.verify(token, accessTokenSecret, (err, verifiedJWT) => {
             if (err) {
-                console.log("Error in verification");
-                console.log(err);
+                console.log("Error in verification", err);
                 return res.sendStatus(403);
             }
-            //contains username, iat, exp
             console.log("No error");
+            //contains username, iat, exp
             req.user = verifiedJWT;
             next();
         });
@@ -59,31 +57,28 @@ const authenticateJWT = (req, res, next) => {
     }
 };
 
-const createTokens = () => {
 
-}
 //Generate access tokens and clerefresh tokens during login
 app.post('/api/login', async (req, res) => {
     //get auth header from request, [0] is a string "Basic" and [1] contains the username and password encoded in base64
     //decode the auth header which returns "username:password" in plaintext
-    //retrive username/password using split and array destructuring
+    //retrieve username/password using split and array destructuring
     const auth = req.headers.authorization.split(' ')[1];
     const decodedFromBase64 = Buffer.from(auth, 'base64').toString();
     const [username, password] = decodedFromBase64.split(":");
     
     //retrieve hashed password from db, use bcrypt.compare to compare user entered password and stored password
     const user = await db.query("SELECT password FROM users WHERE username = $1", [username]);
-
     bcrypt.compare(password, user.rows[0].password, (err, result) => {
+        //if passwords match, generate access token, and refresh token for user
+        //refresh token is stored in a secured cookie header, access token is sent in json
         if(result) {
-            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '2m' });
+            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1m' });
             const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '48h' });
-            refreshTokens.push(refreshToken);
             res.cookie('refreshToken', refreshToken, {
-                expires: new Date(Date.now() + 172800000),
+                expires: new Date(Date.now() + 1000*60*60*48), //1000ms*60s*60min*48h
                 secure: false, // set to true if your using https
             });
-            console.log(refreshTokens);
             res.status(200).json({ accessToken });
         }
         else {
@@ -93,33 +88,16 @@ app.post('/api/login', async (req, res) => {
     });
 });
 
-app.get('/api/hi', (req, res) => {
-    const { refreshToken } = req.cookies;
-    console.log(req.cookies);
-    res.send("success");
-});
 
 const checkUsernameAvailable = async (req, res, next) => {
     const username = await db.query('SELECT username FROM users WHERE username = $1', [req.body.username]);
-    if(username.rows[0] !== undefined) { console.log("username exists"); return res.sendStatus(403); }
+    //send 403 error if user already exists
+    if(username.rows[0] !== undefined) { return res.sendStatus(403); }
     next(); 
 }
 
-const checkPasswordLength = (req, res, next) => {
-    if(req.body.password.length < 8) {
-        console.log("Password is less than 8 chars")
-        return res.sendStatus(401);
-    }
-    // const r = new RegExp("^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$");
-    // console.log(req.body.password.match(r));
-    // if(!r.test(req.body.password)) {
-    //     console.log("Password did not match");
-    //     return res.sendStatus(403);
-    // }
-    next(); 
-}
-
-app.post('/api/signup', checkUsernameAvailable, checkPasswordLength, async (req, res) => {
+//Register a user to the database
+app.post('/api/signup', checkUsernameAvailable, async (req, res) => {
     let hash = bcrypt.hashSync(req.body.password, 10);
     const user = await db.query(`INSERT INTO users (username, password) VALUES ($1, $2)`, [req.body.username, hash]);
     console.log(user);
@@ -128,21 +106,21 @@ app.post('/api/signup', checkUsernameAvailable, checkPasswordLength, async (req,
 
 //Generate new access tokens using refresh tokens 
 app.post('/api/refresh-token', (req, res) => {
+    
     const { refreshToken } = req.cookies;
 
     if(!refreshToken){
         return res.sendStatus(401);
     }
-    // if(!refreshTokens.includes(refreshToken)){
-    //     return res.sendStatus(403);
-    // }
-
-    jwt.verify(refreshToken, refreshTokenSecret, (err, {username}) => {
-        if(err){ 
+    
+    jwt.verify(refreshToken, refreshTokenSecret, (err, result) => {
+        
+        //check if err exists or result is undefined
+        if(err || !result){ 
             return res.sendStatus(401);
         }
-        console.log(username);
-        const accessToken = jwt.sign({ username }, accessTokenSecret, { expiresIn: '2m' });
+        const { username } = result;
+        const accessToken = jwt.sign({ username }, accessTokenSecret, { expiresIn: '1m' });
         res.json({ accessToken });     
     });
        
@@ -150,32 +128,32 @@ app.post('/api/refresh-token', (req, res) => {
 
 app.post('/api/logout', (req, res) => {
     const { refreshToken } = req.cookies;
-    refreshTokens = refreshTokens.filter(t => t != refreshToken);
     res.clearCookie('refreshToken');
     res.sendStatus(200);
 });
 
 //READ all expenses
 app.get('/api/expenses', authenticateJWT, async (req, res) => {
+    //console.log("get /api/expenses req.user.username", req.user.username)
     const results = await db.query("SELECT * FROM expenses WHERE username = $1", [req.user.username]);
-    console.log(results.rows);
+    //console.log("get /api/expenses db result", results.rows);
     res.status(200).json({
         status: "success",
         expenses: results.rows
     });
 });
 
-
 //WRITE an expense
 app.post('/api/expenses', authenticateJWT, async (req,res) => {
     try {
-        console.log("Post expense");
+        //console.log("Post expense");
         const {paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date} = req.body;
         const results = await db.query(`INSERT INTO expenses (username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`, 
             [req.user.username, paid, sold, shipping, other, paypal_fee, seller_fee, item_profit, platform, date]
         );
-        console.log(results.row);
+        //console.log("post /api/expenses req.user.username", req.user.username)
+        //console.log("post /api/expenses db result", results.row);
         res.status(200).json({
             status: "success",
             data: results.row
@@ -186,18 +164,31 @@ app.post('/api/expenses', authenticateJWT, async (req,res) => {
     }
 });
 
+//DELETE an expense
+app.delete('/api/expenses/:transaction_id', authenticateJWT, async (req,res) => {
+    await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.user.username]);
+    res.status(200).json({
+        status: "success",
+        data: {
+            id: req.params.transaction_id
+        }
+    })
+});
+
 //WRITE a tracking number
 app.post("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
     try {
-        const results = await db.query(`SELECT count(*) FROM tracking WHERE cardinality(tracking_num) = 0 AND username = $1`, [req.user.username]);
-        console.log(results.rows);
-        let result;
+        const count = await db.query(`SELECT tracking_num FROM tracking WHERE username = $1`, [req.user.username]);
         
-        if(results.rows[0].count === 0) {
+        let result;
+
+        //if no row exist, then insert data into table for the first time else update the existing row
+        if(count.rowCount === 0) {
             result = await db.query(`INSERT INTO tracking (username, tracking_num) VALUES($1, ARRAY [$2]) RETURNING tracking_num;`, [req.user.username, req.params.tracking_num]);
+        } else {
+            const tracking_num = `\{${req.params.tracking_num}\}`; 
+            result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num;`, [tracking_num, req.user.username]);
         }
-        const tracking_num = `\{${req.params.tracking_num}\}`;
-        result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num;`, [tracking_num, req.user.username]);
         res.status(200).json({
             status: "success",
             data: result.rows
@@ -205,34 +196,6 @@ app.post("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
     } catch(err) {
         console.error(err);
     }
-});
-
-// //UPDATE existing tracking numbers
-// app.put("/api/tracking/:tracking_num", authenticateJWT, async (req,res) => {
-//     try {
-//         console.log(req.params.tracking_num);
-//         const tracking_num = `\{${req.params.tracking_num}\}`;
-//         const result = await db.query(`UPDATE tracking SET tracking_num = array_cat(tracking_num, $1) WHERE username = $2 RETURNING tracking_num ;`, [tracking_num, req.user.username]);
-//         res.status(200).json({
-//             status: "success",
-//             data: result.rows
-//         });
-//     } catch(err) {
-//         console.error(err);
-//     }
-// });
-
-//DELETE an expense
-app.delete('/api/expenses/:transaction_id', authenticateJWT, async (req,res) => {
-    //console.log(req.params.transaction_id);
-    await db.query(`DELETE FROM expenses WHERE transaction_id = $1 and username = $2`, [req.params.transaction_id, req.user.username]);
-    //console.log(result);
-    res.status(200).json({
-        status: "success",
-        data: {
-            id: req.params.transaction_id
-        }
-    })
 });
 
 //DELETE a tracking number
