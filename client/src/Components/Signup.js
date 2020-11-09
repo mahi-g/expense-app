@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import API from '../api/api';
+import axiosApiInstance from '../api/axios';
 
 
 const Signup = (props) => {
@@ -9,7 +9,7 @@ const Signup = (props) => {
 
     async function handleSignUp(e){
         e.preventDefault();
-        await API.post('/signup', {
+        await axiosApiInstance.post('/signup', {
             username: e.target.username.value,
             password: e.target.password.value
         }).then(response => {
