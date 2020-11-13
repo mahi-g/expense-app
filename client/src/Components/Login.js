@@ -6,7 +6,7 @@ import axiosApiInstance from '../api/axios';
 
 const Login = () => {
     const [error, setError] =  useState(false);
-    const {currentUser, setAccessToken, setUser, setExpense, setAuth} = useContext(userInfoContext);
+    const {currentUser, trackingNums, setUser, setTrackingNums, setExpense, setAuth} = useContext(userInfoContext);
 
     const history = useHistory();
 
@@ -17,12 +17,11 @@ const Login = () => {
              .then( response => {
                  console.log(response);
                  if(response.data !== undefined){
-                    setAccessToken({accessToken: response.data.accessToken});
-                    setUser(response.config.auth.username);
-                    setAuth(true);
                     localStorage.setItem('accessToken', response.data.accessToken);
                     localStorage.setItem('username', response.config.auth.username);
-
+                    setUser(response.config.auth.username);
+                    setAuth(true);
+                    console.log("handle login");
                     history.push("/dashboard");
                  }
              }).catch( e => {
@@ -34,12 +33,25 @@ const Login = () => {
     }
     useEffect( () => {
         console.log("Login useEffect");
-        if(currentUser!==""){
+        console.log(currentUser);
+        console.log(localStorage.getItem('accessToken'));
+
+        if(localStorage.getItem('accessToken') !== null ){
             ( async () => {
-                await axiosApiInstance.get('/expenses')
-                    .then( response => {
-                        setExpense(response.data.expenses);
+                await axiosApiInstance.get('/expenses').then( 
+                        response => {
+                            if(response != undefined){
+                                setExpense(response.data.expenses);
+                            }
                 });
+                await axiosApiInstance.get(`/tracking`).then(
+                    response => {
+                        console.log(response);
+                        if(response != undefined){
+                            setTrackingNums([response.data.tracking[0].tracking_num]);
+                        }
+                    }).catch(error => console.log(error));
+                        
             })()
         }
     },[currentUser]);

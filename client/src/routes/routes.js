@@ -14,13 +14,9 @@ import {userInfoContext} from '../userInfoContext';
 import ViewExpenses from "../Components/ViewExpenses";
 
 const PrivateRoutes = ({children}) => {
-    const user = useContext(userInfoContext);
-    console.log("currentUser",user.currentUser);
-    console.log("Tokens",user.token);
-    console.log("Expenses",user.expenseList);
-    console.log("Expenses",user.isAuthenticated);
+    const { isAuthenticated } = useContext(userInfoContext);
 
-    if(!user.isAuthenticated) {
+    if(!isAuthenticated) {
         return <Redirect to={{pathname:"/login"}}/>
     }
     return children;

@@ -73,7 +73,7 @@ app.post('/api/login', async (req, res) => {
         //if passwords match, generate access token, and refresh token for user
         //refresh token is stored in a secured cookie header, access token is sent in json
         if(result) {
-            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '1m' });
+            const accessToken = jwt.sign({username}, accessTokenSecret, { expiresIn: '15m' });
             const refreshToken = jwt.sign({username}, refreshTokenSecret, { expiresIn: '48h' });
             res.cookie('refreshToken', refreshToken, {
                 expires: new Date(Date.now() + 1000*60*60*48), //1000ms*60s*60min*48h
@@ -120,7 +120,7 @@ app.post('/api/refresh-token', (req, res) => {
             return res.sendStatus(401);
         }
         const { username } = result;
-        const accessToken = jwt.sign({ username }, accessTokenSecret, { expiresIn: '1m' });
+        const accessToken = jwt.sign({ username }, accessTokenSecret, { expiresIn: '15m' });
         res.json({ accessToken });     
     });
        

@@ -1,5 +1,6 @@
-import React from 'react';
- 
+import React, { useContext } from 'react';
+import { userInfoContext } from '../userInfoContext';
+
 //9400128206335287201003 
 //9400128206335276889946
 //9400128206335287197597
@@ -8,6 +9,7 @@ import React from 'react';
 //ISSUE -> GETTING AN ERROR MESSAGE FROM USPS api
 
 const TrackPackages = (props) => {
+    const { trackingNums } = useContext(userInfoContext);
     return (
             <div className="GridItem2">
                 <form onSubmit={props.addTracking} className="Card">
@@ -18,9 +20,9 @@ const TrackPackages = (props) => {
                     <button>Track</button>
                 </form>
                 {
-                    props.state.trackingIds && <div>
+                    trackingNums && <div>
                         <p>Data as of</p>
-                        <button type="submit" onClick={()=>props.readData(props.state.trackingIds)}>Refresh</button>
+                        <button type="submit" onClick={()=>props.readData(trackingNums)}>Refresh</button>
                         <PrintData 
                             deliveryData={props.state.deliveryData}
                             removeTracking={props.removeTracking}

@@ -28,57 +28,51 @@ class App extends React.Component {
         this.addTracking = this.addTracking.bind(this);
         this.readData = this.readData.bind(this);
         this.removeTracking = this.removeTracking.bind(this);
-        this.stateSetter = this.stateSetter.bind(this);
     }
 
     static contextType = userInfoContext;
 
-    stateSetter(responseTrackingNumbers){
-        this.setState({trackingIds: responseTrackingNumbers});
-        if(responseTrackingNumbers.length !== 0){
-            this.readData(this.state.trackingIds);
-        }
-    }
 
     //Remove data by making a delete request
-    //If only one tracking number exists in the array, then sets the trackingId and deliveryData in the state to empty arrays
+    //If only one tracking number exists in the array, then sets the tracking numbers and deliveryData in the state to empty arrays
     //Else, deletes the array, updates the state with the response data, and recalls the readData() function to fetch data from 
     //the api  
     async removeTracking(e) {
         await axiosApiInstance.delete(`tracking/${e.target.value}`).then( response => {
             if(response.data.tracking[0].length === 0) {
-                this.setState({trackingIds: [], deliveryData: []});
+                this.setState({deliveryData: []});
+                this.context.setTrackingNums([]);
             }
             else {
-                this.setState({trackingIds: response.data.tracking[0].tracking_num});
+                this.context.setTrackingNums(response.data.tracking[0].tracking_num);
             }
         }).catch(error=> console.log(error));
 
         //if state
-        if(this.state.trackingIds.length >= 1) {
-            this.readData(this.state.trackingIds);
+        if(this.context.trackingNum >= 1) {
+            this.readData(this.context.trackingNums);
         }
     }
 
     //handles tracking number from form input, adds it to database, updates state
-    //first checks if input value already exists in the state trackingId array
-    //then checks if trackingId is empty or undefined, sends post request to insert trackingId array into table, 
+    //first checks if input value already exists in trackingNums array
+    //then checks if trackingNums is empty or undefined, sends post request to insert trackingNums array into table, 
     //else update existing array with a put request
-    //updates trackingIds array in states
+    //updates trackingNums array in context api
     async addTracking(e){
         e.preventDefault();
         const tracking_num = e.target.track.value;
-        if(!this.state.trackingIds.includes(tracking_num)) {
+        if(!this.context.trackingNums.includes(tracking_num)) {
             //check if trackingIds undefined or empty, 
             //if so, send a post request that adds the username and tracking numbers in the db tracking table
             await axiosApiInstance.post(`/tracking/${tracking_num}`).then(
                 response => {
                     console.log(response);
-                    this.setState({trackingIds:response.data.data[0].tracking_num});
+                    this.context.setTrackingNums(response.data.data[0].tracking_num);
                 }  
             ).catch(error=> console.log(error));
             
-            this.readData(this.state.trackingIds);
+            this.readData(this.context.trackingNums);
         }
         else {
             console.log("already exists");
@@ -187,9 +181,11 @@ class App extends React.Component {
             date: form.date
         });
         await axiosApiInstance.get('/expenses')
-            .then( response => {
+        .then( response => {
+            if(response !== undefined){
+                this.context.setExpense(response.data.expenses);
+            }
             console.log(response);
-            this.context.setExpense(response.data.expenses);
         });       
     }
 
@@ -217,18 +213,29 @@ class App extends React.Component {
                 .then(response => {
                     console.log(response);
                     //response.data.tracking.length<1 ? this.setState({trackingIds: []}) : 
-                    this.setState({trackingIds: response.data.tracking[0].tracking_num})
+                    //this.setState({trackingIds: response.data.tracking[0].tracking_num})
+                    this.context.setTrackingNums(response.data.tracking[0].tracking_num);
                 }).catch(error => console.log(error));
 
-            if(this.state.trackingIds.length !== 0){
-                this.readData(this.state.trackingIds);
+            if(this.context.trackingNums.length !== 0){
+                this.readData(this.context.trackingNums);
             }          
         }  
     }
 
-    componentDidUpdate(){
-        console.log("APP JS Component Did Update");
-    }
+    async componentDidUpdate(){
+        // if(this.state.trackingIds.length !== ){
+        //     await axiosApiInstance.get(`/tracking`).then(
+        //         response => {
+        //             console.log(response);
+        //             //response.data.tracking.length<1 ? this.setState({trackingIds: []}) : 
+        //             this.setState({trackingIds: response.data.tracking[0].tracking_num})
+        //     }).catch(error => console.log(error));
+        //     if(this.state.trackingIds.length !== 0){
+        //         this.readData(this.state.trackingIds);
+        //     }
+        // }
+    } 
 
     render() {
         return (
@@ -261,27 +268,27 @@ class App extends React.Component {
 }
 
 const RefreshToken = (props) => {
-    const { setUser, setExpense, setAuth, currentUser, isAuthenticated } = useContext(userInfoContext);
+    const { setUser, setExpense, setAuth, setTrackingNums, currentUser, isAuthenticated, trackingNums } = useContext(userInfoContext);
     const history = useHistory();
 
     axiosApiInstance.interceptors.response.use(res => res, async err => {
 
         console.log("FIRST",err);
 
-        //cookie has expired, redirect to login page
-        if(err.response.status === 401 && err.config.url === '/refresh-token'){ 
+        //cookie has expired or user has logged out from another tab, redirect to login page
+        if(err.response.status === 401){ 
+            //if refresh token fails, clear local storage
+            //for logout event, this is done in logout component
+            if(err.config.url === '/refresh-token') {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('username');
+            }
             setUser("");
             setExpense([]);
+            setTrackingNums([]);
             setAuth(false);
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('username');
             history.push('/login');
         };
-
-        console.log("-----------");
-        console.log(err.response);
-        console.log(err.response.status);
-        console.log("-----------");
 
         //accessToken is expired, refresh the token
         if(err.response.status === 403){
@@ -331,10 +338,11 @@ const RefreshToken = (props) => {
         } else {
             axiosApiInstance.get('/tracking').then((res => {
                 console.log("stateSetter", res);
-                res.data.tracking.length !== 0 ? props.stateSetter(res.data.tracking[0].tracking_num) : props.stateSetter([]);
-                
+                res.data.tracking.length !== 0 ? setTrackingNums(res.data.tracking[0].tracking_num) : setTrackingNums([]);
+                if(trackingNums.length !== 0){
+                    this.readData(trackingNums);
                 }
-            ));
+            }));
         }
     }
 
