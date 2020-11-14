@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
+import {userInfoContext} from '../userInfoContext';
 
 const LineChart = (props) => {
-    sortByDate(props.data);
+    const {expenseList} = useContext(userInfoContext);
+    sortByDate(expenseList);
 
     let depopData;
     let etsyData;
@@ -38,21 +40,21 @@ const LineChart = (props) => {
         //converts the object to 2-d array
         depopData = getLineChartData(
             getNumberOfSales(
-                getExpensesByPlatform(props.data,"Depop", startDate),
+                getExpensesByPlatform(expenseList,"Depop", startDate),
                 startMonth, startYear),
             startYear, endYear
         );
 
         etsyData = getLineChartData(
             getNumberOfSales(
-                getExpensesByPlatform(props.data,"Etsy", startDate),
+                getExpensesByPlatform(expenseList,"Etsy", startDate),
                 startMonth, startYear),
             startYear, endYear
         );
 
         ebayData = getLineChartData(
             getNumberOfSales(
-                getExpensesByPlatform(props.data,"Ebay", startDate),
+                getExpensesByPlatform(expenseList,"Ebay", startDate),
                 startMonth, startYear),
             startYear, endYear
         );
@@ -83,7 +85,7 @@ const LineChart = (props) => {
         items = [{
             name: "Depop",
             data:  getSalesForMonth(
-                    getExpensesByPlatform(props.data,"Depop", new Date(year,month,day)), 
+                    getExpensesByPlatform(expenseList,"Depop", new Date(year,month,day)), 
                     year, month, day
             ),
             pointStart: Date.UTC(year, month, day),
@@ -92,7 +94,7 @@ const LineChart = (props) => {
         {
             name: "Etsy",
             data:  getSalesForMonth(
-                    getExpensesByPlatform(props.data,"Etsy", new Date(year,month,day)), 
+                    getExpensesByPlatform(expenseList,"Etsy", new Date(year,month,day)), 
                     year, month, day
             ),
             pointStart: Date.UTC(year, month, day),
@@ -101,7 +103,7 @@ const LineChart = (props) => {
         {
             name: "Ebay",
             data:  getSalesForMonth(
-                    getExpensesByPlatform(props.data,"Ebay", new Date(year,month,day)), 
+                    getExpensesByPlatform(expenseList,"Ebay", new Date(year,month,day)), 
                     year, month, day
             ),
             pointStart: Date.UTC(year, month, day),

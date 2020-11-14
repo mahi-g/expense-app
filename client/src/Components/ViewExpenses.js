@@ -1,17 +1,19 @@
-import React from 'react';
-
+import React, { useContext } from 'react';
+import {userInfoContext} from '../userInfoContext';
 
 //All strings that will be changed sparingly/not at all should be established beforehand..
 const resultTableHeaders = ["Sold", "Paid", "Shipping", "Other", "Paypal Fee", "Seller Fee", "Profit", "Platform", "Date"];
 
 const ViewExpenses = (props) => {
+    
+    const {expenseList} = useContext(userInfoContext);
     return(
             <div className="GridItem5">
-                {props.expenseList.length === 0 && (<p>Add an expense to get started</p>)}
+                {expenseList.length === 0 && (<p>Add an expense to get started</p>)}
                 <table className="TableS Card">
-                    <ItemTableHeaders headers={resultTableHeaders} listCount={props.expenseList.length}/>
+                    <ItemTableHeaders headers={resultTableHeaders} listCount={expenseList.length}/>
                     <ItemTableContents 
-                        list={props.expenseList}
+                        list={expenseList}
                         handleDeleteOption={props.handleDeleteOption}
                     />
                 </table>
