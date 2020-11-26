@@ -85,7 +85,7 @@
     cursor: pointer;
     font-size: small;
     font-weight: bold;
-    padding-right: 10%;
+    text-align: right;
 }
 
 ul{
