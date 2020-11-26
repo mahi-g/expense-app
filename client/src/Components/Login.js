@@ -6,7 +6,7 @@ import axiosApiInstance from '../api/axios';
 
 const Login = () => {
     const [error, setError] =  useState(false);
-    const {currentUser, trackingNums, setUser, setTrackingNums, setExpense, setAuth} = useContext(userInfoContext);
+    const {currentUser, isAuthenticated, setUser, setTrackingNums, setExpense, setAuth} = useContext(userInfoContext);
 
     const history = useHistory();
 
@@ -32,17 +32,15 @@ const Login = () => {
              }); 
     }
     useEffect( () => {
-        console.log("Login useEffect");
-        console.log(currentUser);
-        console.log(localStorage.getItem('accessToken'));
+        if(currentUser !== ""){
+            console.log("Useeffect");
 
-        if(localStorage.getItem('accessToken') !== null ){
             ( async () => {
                 await axiosApiInstance.get('/expenses').then( 
-                        response => {
-                            if(response != undefined){
-                                setExpense(response.data.expenses);
-                            }
+                    response => {
+                        if(response != undefined){
+                            setExpense(response.data.expenses);
+                        }
                 });
                 await axiosApiInstance.get(`/tracking`).then(
                     response => {
@@ -51,7 +49,7 @@ const Login = () => {
                             setTrackingNums([response.data.tracking[0].tracking_num]);
                         }
                     }).catch(error => console.log(error));
-                        
+ 
             })()
         }
     },[currentUser]);

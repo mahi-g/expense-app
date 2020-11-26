@@ -82,8 +82,16 @@ const LineChart = (props) => {
             month = 11;
             year--;
         }
+     
         items = [{
             name: "Depop",
+            fillColor: {
+                linearGradient: [0, 0, 0, 100],
+                stops: [
+                    [0, "#f596a5"],
+                    [1, Highcharts.color("#f596a5").setOpacity(0).get('rgba')]
+                ]
+            },
             data:  getSalesForMonth(
                     getExpensesByPlatform(expenseList,"Depop", new Date(year,month,day)), 
                     year, month, day
@@ -93,6 +101,13 @@ const LineChart = (props) => {
         },
         {
             name: "Etsy",
+            fillColor: {
+                linearGradient: [0, 0, 0, 100],
+                stops: [
+                    [0, "#feb974"],
+                    [1, Highcharts.color("#feb974").setOpacity(0).get('rgba')]
+                ]
+            },
             data:  getSalesForMonth(
                     getExpensesByPlatform(expenseList,"Etsy", new Date(year,month,day)), 
                     year, month, day
@@ -102,6 +117,13 @@ const LineChart = (props) => {
         },
         {
             name: "Ebay",
+            fillColor: {
+                linearGradient: [0, 0, 0, 100],
+                stops: [
+                    [0, "#4b54a5"],
+                    [1, Highcharts.color("#4b54a5").setOpacity(0).get('rgba')]
+                ]
+            },
             data:  getSalesForMonth(
                     getExpensesByPlatform(expenseList,"Ebay", new Date(year,month,day)), 
                     year, month, day
@@ -114,34 +136,60 @@ const LineChart = (props) => {
     
 
     const options = { 
-        chart: {
-            type: 'spline'
-        },       
-            title: {
-                text: "Sales trend:"+title
-            },
-        
-            yAxis: {
-                title: {
-                    text: 'Number of Sales'
+            colors:["#f596a5","#feb974","#4b54a5","#5e86f4"],
+            chart: {
+                type: 'areaspline',
+                height: 200,
+                margin: [10, 50, 60, 50],
+                style: {
+                    color: "#9d9ab3",
                 }
+            },       
+            title: {
+                text: undefined            
+            },
+
+            yAxis: {
+                gridLineDashStyle: 'dash',
+                title: {
+                    text: undefined
+                },
+                labels: {
+                    style: {
+                        color: "#9d9ab3",
+                    }
+                }     
             },
             
             xAxis:{
-                type: 'datetime'
+                type: 'datetime',
+                dateTimeLabelFormats:{
+                    month: '%b' 
+                },
+                labels: {
+                    style: {
+                        color: "#9d9ab3",
+                    }
+                }
             },
-        
             legend: {
-                layout: 'vertical',
-                align: 'right',
-                verticalAlign: 'middle'
+                layout: 'horizontal',
+                align: 'center',
+                verticalAlign: 'bottom',
+                itemStyle: {
+                    fontFamily: 'monospace',
+                    color: "#9d9ab3",
+                    fontSize: '12px'
+                }
             },
-        
             plotOptions: {
                 series: {
                     label: {
                         connectorAllowed: false
                     },
+                    marker: {
+                        enabled: false
+                    }
                 }
             },
 
@@ -150,29 +198,34 @@ const LineChart = (props) => {
             responsive: {
                 rules: [{
                     condition: {
-                        maxWidth: 400
+                        maxWidth: 400,
+                        height: "100%"
+                    },
+                    chart:{
+                        height: "100%"
                     },
                     chartOptions: {
                         legend: {
                             layout: 'horizontal',
-                            align: 'center',
+                            align: 'middle',
                             verticalAlign: 'bottom'
                         }
                     }
                 }]
-            }       
+            },
+            credits: {
+                enabled: false
+              }  
     }
 
     return(
-        <div>
-            <div>
+        <>
                 <HighchartsReact 
                     highcharts={Highcharts} 
                     options={options}
                     oneToOne={true}
                 />
-            </div>
-        </div>
+        </>
 
     );
 }

@@ -148,8 +148,10 @@ class App extends React.Component {
         await axiosApiInstance.delete(`/expenses/${transaction_id}`);
         await axiosApiInstance.get('/expenses')
                 .then( response => {
-                console.log(response);
-                this.context.setExpense(response.data.expenses);
+                    if(response !== undefined){
+                        console.log(response);
+                        this.context.setExpense(response.data.expenses);
+                    }
             });
     }
 
@@ -276,6 +278,7 @@ const RefreshToken = (props) => {
         console.log("FIRST",err);
 
         //cookie has expired or user has logged out from another tab, redirect to login page
+        if(err.response === undefined){ return err;}
         if(err.response.status === 401){ 
             //if refresh token fails, clear local storage
             //for logout event, this is done in logout component

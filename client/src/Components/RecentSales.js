@@ -1,36 +1,39 @@
 import React, {useContext} from "react";
 import "../App.css";
 import {userInfoContext} from '../userInfoContext';
+import { Grid } from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import { makeStyles } from '@material-ui/core/styles';
 
+
+const useStyles = makeStyles({
+    header: {
+        display: 'flex',
+        justifyContent: 'space-between',
+    } 
+});
 
 const RecentSales = (props) => {
     const {expenseList} = useContext(userInfoContext);
-
-    const sales = expenseList.map(
-        (d,i) => {
-            let fees = parseInt(d.shipping)+parseInt(d.paypal_fee)+parseInt(d.seller_fee);
-            //console.log(parseInt(d.shipping)+parseInt(d.paypal_fee)+parseInt(d.seller_fee));
-            if(i >= expenseList.length-5){
+    const classes = useStyles();
+    const sales = expenseList.map( (d,i) => {
+            if(i >= expenseList.length-4){
                 return (
-                    <div className="Expense" key={i}>
-                        <p>Sold at ${d.sold}</p>
-                        <p>Fees: {fees}</p>
-                        <hr />
-                        <h3>${d.item_profit}</h3>
-                    </div>
+                    <CardContent className={classes.header}>
+                        <p>${d.sold}</p>
+                        <p>{d.platform}</p>
+                        <p>{d.date}</p>
+                    </CardContent>
                 );
             }
         }
         );
     return(
-        <div className="GridItem1">
-            <h2>Recent Sales</h2>
-            <div className="CardLayout">
-                {sales}
-            </div>
-            
-        </div>
-
+        <Card>            
+            <h3>Recent Sales</h3>
+            {sales}
+        </Card>
     );
 };
 

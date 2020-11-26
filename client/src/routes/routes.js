@@ -56,7 +56,7 @@ const Routes = (props) => {
                                 state = {props.state}
                             />
                         </Route>
-                        <Route path="/expenses">
+                        <Route path="/sales">
                             <ViewExpenses
                                 handleDeleteOption = {props.handleDeleteOption}
                             />

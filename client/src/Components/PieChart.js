@@ -15,10 +15,13 @@ const PieChart = () => {
     // Create the chart
     const options = {
         chart: {
-            type: 'pie'
+            type: 'pie',
+            width: 225,
+            height: 200
         },
+        
         title: {
-            text: 'All time revenue from each platforms'
+            text: undefined
         },
         accessibility: {
             announceNewData: {
@@ -29,13 +32,32 @@ const PieChart = () => {
             }
         },
         plotOptions: {
+            pie:{
+                //size: '70%',
+                innerSize: '60%',
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: false
+                },
+                showInLegend: true
+            },
+            legend: {
+                //labelFormat: '{point.name}: {point.y:.1f}%',
+                itemStyle: {
+                    fontFamily: 'monospace',
+                    color: "#9d9ab3",
+                    fontSize: '12px'
+                }
+            },
             series: {
                 dataLabels: {
-                    enabled: true,
-                    format: '{point.name}: {point.y:.1f}%'
+                    enabled: false,
+                    format: '{point.name}: {point.y:.1f}%'                    
                 }
             }
         },
+        
         series: [
             {
                 name: "Platforms",
@@ -43,22 +65,28 @@ const PieChart = () => {
                 data: [
                     {
                         name: "Ebay",
+                        color: '#4b54a5',
                         y: data[0],
                         drilldown: "Ebay"
                     },
                     {
                         name: "Depop",
+                        color: '#f596a5',
                         y: data[1],
                         drilldown: "Depop"
                     },
                     {
                         name: "Etsy",
+                        color: '#5e86f4',
                         y: data[2],
                         drilldown: "Etsy"
                     },
                 ]
             }
-        ]   
+        ],  
+        credits: {
+            enabled: false
+          }, 
     };
     return(
         <HighchartsReact

@@ -10,7 +10,7 @@ module.exports = {
         let b = 0;
         let c = 0;
         if(list !== undefined){
-            list.map((d) => {
+            list.forEach((d) => {
                 if(d.platform === 'Ebay') {
                     a += parseInt(d.sold);
                 }

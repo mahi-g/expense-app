@@ -10,9 +10,7 @@
     padding: 0;
     display: grid;
     grid-template-columns: .75fr 2fr 2fr;
-    grid-template-rows: minmax(1fr,auto);
     overflow-x: hidden;
-  
 }               
 
 .Cardstyle{
@@ -26,10 +24,18 @@
 .Cardstyle p{
     margin: 3%;
 }
+.CardGraph{
+    background: #ffffff;
+    width: 60%;
+    border-radius: 4px;
 
+}
 
 .Card{
+    width: 100%;
     background: #ffffff;
+    border-radius: 6px;
+    padding: 2%;
 }
 
 .View{
@@ -60,15 +66,13 @@
 }
 .Topbar{
     grid-column: 2/4;
-    background: white;
     padding: 0;
 }
 
 /* side bar */
 .Sidebar{
-    color: white;
+    background: rgb(50,53,85);
     height: 100%;
-    background: rgb(30, 47, 63);
     overflow-x: hidden;
     grid-column: 1 / 2;
     grid-row: 1/6;
@@ -77,29 +81,38 @@
 }
  a {
     height: 100%;
-    padding: 10%;
-    color: white;
     text-decoration: none;
     cursor: pointer;
+    font-size: small;
+    font-weight: bold;
+    padding-right: 10%;
 }
 
 ul{
     width: 100%;
     text-align: left;
+    margin: auto;
+    margin-top: 30%;
 }
 ul li{
     list-style: none;
-    padding: 5%;
-    border-bottom: 2px solid rgb(34, 51, 68);
+    margin: 10%;
+}
+ul li > *{
+    list-style: none;
+    color: #9d9ab3;
 }
 ul li:hover{
-    background: rgb(34, 51, 68);
+    background: #9d9ab3;
+    color: rgb(50,53,85);
 }
-
+ul li > *:hover{
+    color: rgb(50,53,85);
+}
 /* Table */
 
 tr:nth-child(even) {
-    background-color: rgb(251, 251, 253);
+    background-color: rgb(251, 251, 255);
 }
 thead, td{
     text-align: center;
@@ -107,7 +120,7 @@ thead, td{
 }
 thead{
     width: 100%;
-    background: rgb(76, 160, 172);
+    background: rgb(120, 143, 206);
     color: #ffffff;
     font-weight: normal;
     padding: 10%;
@@ -163,6 +176,3 @@ Select{padding: 1.5%;}
     border: .2px solid rgb(237, 242, 246);
 }
 
-.highcharts-background{
-    width: 500;
-}
