@@ -1,27 +1,32 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
+import { userInfoContext } from '../userInfoContext';
 
+import ActiveOrders from "./ActiveOrders";
+import AddSale from "./AddSale";
 import LineChart from "./LineChart";
-import Calculator from "./Calculator";
 import PieChart from "./PieChart";
 import RecentSales from "./RecentSales";
 import TotalSales from "./TotalSales";
 import TotalRevenue from "./TotalRevenue";
 import TopSellingPlatform from "./TopSellingPlatform";
-import ActiveOrders from "./ActiveOrders";
 
-import { makeStyles } from '@material-ui/core/styles';
-import { Grid } from '@material-ui/core';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import { Grid } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
+
 
 
 const useStyles = makeStyles({
     header: {
         display: 'flex',
         justifyContent: 'space-between',
-    },  
+    }, 
+    card: {
+        boxShadow: 'none',
+    }, 
     button:{
         height: '20%',
         margin: 'auto',
@@ -29,8 +34,10 @@ const useStyles = makeStyles({
     }
 });
 
-const Dashboard = (props) => {
+const Dashboard = () => {
     const [selectedDateValue, setValue] = useState("six-month");
+    const {currentUser} = useContext(userInfoContext);
+
     const classes = useStyles();
     return (
         <div className="GridItem2">
@@ -38,8 +45,8 @@ const Dashboard = (props) => {
         <Grid container spacing={3}>
 
             <Grid item xs={12} md={12} lg={12} className={classes.header}>
-                <h2>DASHBOARD</h2>
-                <Button>Add Sale</Button>
+                <h2>Hello {currentUser}!</h2>
+                <AddSale />
             </Grid>
 
             <Grid item xs={6} md={3} lg={3}>
@@ -56,7 +63,7 @@ const Dashboard = (props) => {
             </Grid>
            
             <Grid item xs={12} md={6} lg={6}>
-                <Card>
+                <Card className={classes.card}>
                     <CardContent className={classes.header}>
                         <h3>Sales</h3>
                         <ButtonGroup size="small" aria-label="small outlined button group" className={classes.button}>
@@ -70,7 +77,7 @@ const Dashboard = (props) => {
             </Grid>
            
             <Grid item xs={12} md={6} lg={3}>
-                <Card>
+                <Card className={classes.card}>
                     <CardContent className={classes.header}>
                         <h3>Revenue</h3>
                     </CardContent>

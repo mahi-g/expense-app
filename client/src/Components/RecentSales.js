@@ -1,7 +1,6 @@
 import React, {useContext} from "react";
 import "../App.css";
 import {userInfoContext} from '../userInfoContext';
-import { Grid } from '@material-ui/core';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import { makeStyles } from '@material-ui/core/styles';
@@ -11,7 +10,10 @@ const useStyles = makeStyles({
     header: {
         display: 'flex',
         justifyContent: 'space-between',
-    } 
+    },
+    card: {
+        boxShadow: 'none',
+    }
 });
 
 const RecentSales = (props) => {
@@ -28,9 +30,9 @@ const RecentSales = (props) => {
                 );
             }
         }
-        );
+    );
     return(
-        <Card>            
+        <Card className={classes.card}>            
             <h3>Recent Sales</h3>
             {sales}
         </Card>

@@ -11,6 +11,7 @@ const useStyles = makeStyles({
     header: {
         display: 'flex',
         justifyContent: 'space-around',
+        boxShadow: 'none',
     },
 });
 
@@ -20,14 +21,14 @@ const ActiveOrders = () => {
     const numSales = expenseList.length;
     return (
         
-        <Card className={classes.header}>
+        <Card className={classes.header }>
             <img src={box} alt="bag icon" style={{width:'50px', height:'50px', display:'block', margin:'auto', marginLeft:'10px'}} />
             <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
-                    {5}
-                </Typography>
                 <Typography variant="body2" color="textSecondary" component="p">
                     Active Orders
+                </Typography>
+                <Typography gutterBottom variant="h5" component="h2">
+                    {5}
                 </Typography>
             </CardContent>
         </Card>

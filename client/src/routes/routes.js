@@ -13,35 +13,25 @@ import TrackPackages from "../Components/TrackPackages";
 import {userInfoContext} from '../userInfoContext';
 import ViewExpenses from "../Components/ViewExpenses";
 
-const PrivateRoutes = ({children}) => {
-    const { isAuthenticated } = useContext(userInfoContext);
+// const PrivateRoutes = ({children}) => {
+//     const { isAuthenticated } = useContext(userInfoContext);
 
-    if(!isAuthenticated) {
-        return <Redirect to={{pathname:"/login"}}/>
-    }
-    return children;
-}
-const PublicRoutes = ({children}) => {
-    const user = useContext(userInfoContext);
-    if(user.isAuthenticated) {
-        return <Redirect to={{pathname:"/dashboard"}}/>
-    }
-    return children;
-}
-
+//     if(!isAuthenticated) {
+//         return <Redirect to={{pathname:"/login"}}/>
+//     }
+//     return children;
+// }
+// const PublicRoutes = ({children}) => {
+//     const user = useContext(userInfoContext);
+//     if(user.isAuthenticated) {
+//         return <Redirect to={{pathname:"/dashboard"}}/>
+//     }
+//     return children;
+// }
 
 const Routes = (props) => {
     return(
             <Switch>
-                    <Route path="/login"><Login/></Route>
-                    <Route path="/signup"><Signup/></Route>
-                    <Route exact path="/">
-                        <Calculator
-                            handleFormInputs = {props.handleFormInputs}
-                            state = {props.state}
-                        />
-                    </Route>
-                    <PrivateRoutes>
                         <Route path="/dashboard">
                             <Dashboard 
                                 state={props.state}
@@ -61,7 +51,6 @@ const Routes = (props) => {
                                 handleDeleteOption = {props.handleDeleteOption}
                             />
                         </Route>
-                    </PrivateRoutes>
             </Switch>    
     );
 };

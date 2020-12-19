@@ -4,8 +4,10 @@ import { userInfoContext } from './userInfoContext';
 import { BrowserRouter as Router, useHistory } from 'react-router-dom';
 import calculateFees from "./pureFunctions/calculateFees";
 import Logout from "./Components/Logout";
+import PublicRoutes from "./routes/PublicRoutes.js";
 import Routes from "./routes/routes.js";
 import Sidebar from "./Components/Sidebar.js";
+import ResponsiveDrawer from "./Components/ResponsiveDrawer.js";
 import "./App.css";
 
 
@@ -241,22 +243,29 @@ class App extends React.Component {
 
     render() {
         return (
+            
+           
             <Router>
                 <div className={"App"}>
                     <div className={"Body"}>
-                        <div className="GridContainer">
-                            <Sidebar />
-                            <div className="Topbar">
-                                { this.context.isAuthenticated && <Logout/> }
-                            </div> 
-                            <Routes 
-                                state={this.state} 
-                                handleFormInputs={this.handleFormInputs}
-                                handleDeleteOption = {this.handleDeleteOption}
-                                addTracking = {this.addTracking}
-                                readData = {this.readData}
-                                removeTracking = {this.removeTracking}
-                            /> 
+                        <div >
+                        {!this.context.isAuthenticated  
+                            ? <PublicRoutes /> 
+                            :  (<div>
+                                <ResponsiveDrawer />
+                                <div className="Topbar">
+                                    <Logout/> 
+                                </div> 
+                                <Routes 
+                                    state={this.state} 
+                                    handleFormInputs={this.handleFormInputs}
+                                    handleDeleteOption = {this.handleDeleteOption}
+                                    addTracking = {this.addTracking}
+                                    readData = {this.readData}
+                                    removeTracking = {this.removeTracking}
+                                />
+                                </div>)
+                        }
                         </div>
                     </div>
                     <div className={"Footer"}>

@@ -12,6 +12,7 @@ const Logout = () => {
             setUser("");
             setExpense([]);
             setAuth(false);
+
             localStorage.removeItem('accessToken');
             localStorage.removeItem('username');
 

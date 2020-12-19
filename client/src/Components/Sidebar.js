@@ -8,6 +8,7 @@ import InsertChartIcon from '@material-ui/icons/InsertChart';
 import IsoIcon from '@material-ui/icons/Iso';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import LocalShippingIcon from '@material-ui/icons/LocalShipping';
+import Drawer from '@material-ui/core/Drawer';
 
 const divLayout = {
     display: 'flex',
@@ -16,9 +17,13 @@ const LinkText = {
     marginLeft:'25%', 
     marginTop:'2px'
 }
+
+const drawer = {
+    width: '240px'
+}
 const Sidebar = () => {
     return(
-        <div className="Sidebar">
+        <Drawer className={drawer} anchor="left">
             <ul>
                 <li>
                     <Link to="/dashboard" style={divLayout}>
@@ -51,7 +56,7 @@ const Sidebar = () => {
                     </Link>
                 </li>
             </ul>
-        </div>
+        </Drawer>
     );
 };
 
